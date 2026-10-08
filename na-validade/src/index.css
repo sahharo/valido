@@ -1,0 +1,145 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/* App-wide theme: neutral surfaces, one muted green accent ("brand"); color is reserved for expiry status. */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Milky off-white instead of pure white: "paper" is the page, "milk" the cards. Light grays are warm too. */
+  --color-paper: #f3f0e8;
+  --color-milk: #fbf9f4;
+  --color-stone-50: #f6f3ec;
+  --color-stone-100: #eeeae1;
+  --color-stone-200: #e4ded2;
+  --color-stone-300: #d3ccbe;
+  --color-brand-50: oklch(97% 0.012 160);
+  --color-brand-100: oklch(93.5% 0.025 160);
+  --color-brand-200: oklch(87% 0.045 160);
+  --color-brand-300: oklch(78% 0.065 160);
+  --color-brand-400: oklch(64% 0.08 160);
+  --color-brand-500: oklch(48% 0.08 160);
+  --color-brand-600: oklch(42% 0.075 160);
+  --color-brand-700: oklch(36% 0.065 160);
+  --color-brand-800: oklch(30% 0.055 160);
+  --color-brand-900: oklch(25% 0.045 160);
+  --animate-scan: scan 2s ease-in-out infinite;
+  --animate-pop: pop 0.25s ease-out;
+  @keyframes scan {
+    0%, 100% { top: 12%; }
+    50% { top: 85%; }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  @apply bg-paper text-stone-800 antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Dark mode: palette remapped under .dark, so existing utility classes adapt without per-component changes. */
+@custom-variant dark (&:where(.dark, .dark *));
+.dark {
+  color-scheme: dark;
+  --color-stone-50: oklch(14.7% 0.004 49.25);
+  --color-stone-100: oklch(21.6% 0.006 56.043);
+  --color-stone-200: oklch(26.8% 0.007 34.298);
+  --color-stone-300: oklch(37.4% 0.01 67.558);
+  --color-stone-400: oklch(44.4% 0.011 73.639);
+  --color-stone-600: oklch(70.9% 0.01 56.259);
+  --color-stone-700: oklch(86.9% 0.005 56.366);
+  --color-stone-800: oklch(92.3% 0.003 48.717);
+  --color-stone-900: oklch(97% 0.001 106.424);
+  --color-stone-950: oklch(98.5% 0.001 106.423);
+  --color-brand-50: oklch(26% 0.03 160);
+  --color-brand-100: oklch(32% 0.045 160);
+  --color-brand-200: oklch(38% 0.055 160);
+  --color-brand-400: oklch(62% 0.08 160);
+  --color-brand-500: oklch(52% 0.08 160);
+  --color-brand-600: oklch(72% 0.08 160);
+  --color-brand-700: oklch(80% 0.07 160);
+  --color-brand-800: oklch(88% 0.05 160);
+  --color-brand-900: oklch(93% 0.03 160);
+  --color-rose-50: oklch(27.1% 0.105 12.094);
+  --color-rose-100: oklch(41% 0.159 10.272);
+  --color-rose-200: oklch(45.5% 0.188 13.697);
+  --color-rose-700: oklch(81% 0.117 11.638);
+  --color-rose-800: oklch(89.2% 0.058 10.001);
+  --color-rose-900: oklch(94.1% 0.03 12.58);
+  --color-amber-50: oklch(27.9% 0.077 45.635);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-amber-200: oklch(47.3% 0.137 46.201);
+  --color-amber-700: oklch(87.9% 0.169 91.605);
+  --color-amber-800: oklch(92.4% 0.12 95.746);
+  --color-amber-900: oklch(96.2% 0.059 95.617);
+  --color-orange-50: oklch(26.6% 0.079 36.259);
+  --color-orange-100: oklch(40.8% 0.123 38.172);
+  --color-orange-200: oklch(47% 0.157 37.304);
+  --color-orange-700: oklch(83.7% 0.128 66.29);
+  --color-orange-800: oklch(90.1% 0.076 70.697);
+  --color-orange-900: oklch(95.4% 0.038 75.164);
+  --color-sky-50: oklch(29.3% 0.066 243.157);
+  --color-sky-100: oklch(39.1% 0.09 240.876);
+  --color-sky-200: oklch(44.3% 0.11 240.79);
+  --color-sky-700: oklch(82.8% 0.111 230.318);
+  --color-sky-800: oklch(90.1% 0.058 230.902);
+  --color-sky-900: oklch(95.1% 0.026 236.824);
+  --color-yellow-50: oklch(28.6% 0.066 53.813);
+  --color-yellow-100: oklch(42.1% 0.095 57.708);
+  --color-yellow-200: oklch(47.6% 0.114 61.907);
+  --color-yellow-700: oklch(90.5% 0.182 98.111);
+  --color-yellow-800: oklch(94.5% 0.129 101.54);
+  --color-yellow-900: oklch(97.3% 0.071 103.193);
+  --color-red-50: oklch(25.8% 0.092 26.042);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-red-200: oklch(44.4% 0.177 26.899);
+  --color-red-700: oklch(80.8% 0.114 19.571);
+  --color-red-800: oklch(88.5% 0.062 18.334);
+  --color-red-900: oklch(93.6% 0.032 17.717);
+  --color-violet-50: oklch(28.3% 0.141 291.089);
+  --color-violet-100: oklch(38% 0.189 293.745);
+  --color-violet-200: oklch(43.2% 0.232 292.759);
+  --color-violet-700: oklch(81.1% 0.111 293.571);
+  --color-violet-800: oklch(89.4% 0.057 293.283);
+  --color-violet-900: oklch(94.3% 0.029 294.588);
+  --color-pink-50: oklch(28.4% 0.109 3.907);
+  --color-pink-100: oklch(40.8% 0.153 2.432);
+  --color-pink-200: oklch(45.9% 0.187 3.815);
+  --color-pink-700: oklch(82.3% 0.12 346.018);
+  --color-pink-800: oklch(89.9% 0.061 343.231);
+  --color-pink-900: oklch(94.8% 0.028 342.258);
+  --color-lime-50: oklch(27.4% 0.072 132.109);
+  --color-lime-100: oklch(40.5% 0.101 131.063);
+  --color-lime-200: oklch(45.3% 0.124 130.933);
+  --color-lime-700: oklch(89.7% 0.196 126.665);
+  --color-lime-800: oklch(93.8% 0.127 124.321);
+  --color-lime-900: oklch(96.7% 0.067 122.328);
+  --color-fuchsia-50: oklch(29.3% 0.136 325.661);
+  --color-fuchsia-100: oklch(40.1% 0.17 325.612);
+  --color-fuchsia-200: oklch(45.2% 0.211 324.591);
+  --color-fuchsia-700: oklch(83.3% 0.145 321.434);
+  --color-fuchsia-800: oklch(90.3% 0.076 319.62);
+  --color-fuchsia-900: oklch(95.2% 0.037 318.852);
+  --color-cyan-50: oklch(30.2% 0.056 229.695);
+  --color-cyan-100: oklch(39.8% 0.07 227.392);
+  --color-cyan-200: oklch(45% 0.085 224.283);
+  --color-cyan-700: oklch(86.5% 0.127 207.078);
+  --color-cyan-800: oklch(91.7% 0.08 205.041);
+  --color-cyan-900: oklch(95.6% 0.045 203.388);
+}
+/* Light mode: white surfaces (cards, inputs, bars) use the milky off-white. */
+.bg-white { background-color: var(--color-milk); }
+.ring-white { --tw-ring-color: var(--color-milk); }
+/* White surfaces (cards, inputs, bars) become dark gray; white text and white overlays on colored areas stay white. */
+.dark .bg-white { background-color: oklch(24% 0.005 60); }
+.dark .bg-white\/90 { background-color: oklch(24% 0.005 60 / 0.9); }
+.dark .bg-white\/80 { background-color: oklch(24% 0.005 60 / 0.8); }
+.dark .ring-white { --tw-ring-color: oklch(24% 0.005 60); }
+.dark .ring-paper { --tw-ring-color: oklch(17% 0.004 60); }
+.dark body { background-image: none; background-color: oklch(17% 0.004 60); }
+/* Surfaces that are dark on purpose (toast, overlays, scanner, dark buttons) stay dark in dark mode. */
+.dark .bg-stone-800 { background-color: oklch(37.4% 0.01 67.558); }
+.dark .bg-stone-900 { background-color: oklch(21.6% 0.006 56.043); }
+.dark .bg-stone-900\/40 { background-color: rgb(0 0 0 / 0.6); }

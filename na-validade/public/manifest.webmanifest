@@ -1,0 +1,10 @@
+{
+  "name": "Na Validade",
+  "short_name": "Na Validade",
+  "description": "Controle de validade de produtos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f0e8",
+  "theme_color": "#2d6a4f",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

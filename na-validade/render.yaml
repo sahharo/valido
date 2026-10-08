@@ -1,0 +1,18 @@
+# Render Blueprint: one web service runs the API and serves the built web app (same address).
+services:
+  - type: web
+    name: navalidade
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build && cd server && npm ci --include=dev
+    startCommand: cd server && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: APP_TIMEZONE
+        value: America/Sao_Paulo
