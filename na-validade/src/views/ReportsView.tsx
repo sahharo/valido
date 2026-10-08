@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Download, PackageMinus, ShieldAlert, TrendingDown } from 'lucide-react'
 import { LOSS_REASONS, REASON_LABEL } from '../../shared/domain.ts'
-import { Chips, ErrorBox, inputCls, Loading } from '../components/ui.tsx'
+import { Chips, ErrorBox, Field, inputCls, Loading } from '../components/ui.tsx'
 import { useOpenLot } from '../lotSheet.ts'
 import { storeParam, useApi } from '../queries.ts'
 import type { ReportData } from '../types.ts'
@@ -14,7 +14,12 @@ const PERIOD_LABEL: Record<PeriodId, string> = { month: 'Este mês', '30': '30 d
 function range(p: PeriodId, from: string, to: string) {
   const today = isoInDays(0)
   if (p === 'month') return { from: `${today.slice(0, 8)}01`, to: today }
-  if (p === 'custom') return { from: from || today, to: to || today }
+  if (p === 'custom') {
+    const a = from || isoInDays(-29)
+    const b = to || today
+    // Dates picked in reverse order are swapped instead of rejected.
+    return a <= b ? { from: a, to: b } : { from: b, to: a }
+  }
   return { from: isoInDays(-Number(p) + 1), to: today }
 }
 
@@ -31,7 +36,7 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
     if (!data) return
     downloadCsv(
       `retiradas-${r.from}-a-${r.to}.csv`,
-      ['Data', 'Loja', 'Produto', 'Código', 'Categoria', 'Lote', 'Validade', 'Quantidade', 'Motivo', 'Valor (R$)', 'Responsável', 'Observações'],
+      ['Data', 'Loja', 'Produto', 'Código', 'Setor', 'Lote', 'Validade', 'Quantidade', 'Motivo', 'Valor (R$)', 'Responsável', 'Observações'],
       data.history.map((h) => [
         formatDateTime(h.createdAt), h.store, h.product, h.barcode, h.category, h.lotNumber, formatDate(h.expiryDate),
         h.quantity, REASON_LABEL[h.reason], h.totalCost?.toFixed(2).replace('.', ','), h.user, h.notes,
@@ -44,9 +49,16 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
       <h1 className="text-2xl font-semibold">Relatórios</h1>
       <Chips options={PERIODS} value={period} onChange={setPeriod} labels={PERIOD_LABEL} />
       {period === 'custom' && (
-        <div className="grid grid-cols-2 gap-3">
-          <input type="date" aria-label="De" className={inputCls} value={from} onChange={(e) => setFrom(e.target.value)} />
-          <input type="date" aria-label="Até" className={inputCls} value={to} onChange={(e) => setTo(e.target.value)} />
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="De">
+              <input type="date" className={inputCls} value={from || r.from} onChange={(e) => setFrom(e.target.value)} />
+            </Field>
+            <Field label="Até">
+              <input type="date" className={inputCls} value={to || r.to} onChange={(e) => setTo(e.target.value)} />
+            </Field>
+          </div>
+          <p className="pl-1 text-xs text-stone-500">Mostrando de {formatDate(r.from)} a {formatDate(r.to)}</p>
         </div>
       )}
 
@@ -72,7 +84,7 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
           </Section>
 
           <Bars title="Perdas por motivo" rows={data.losses.byReason.map((x) => ({ key: x.reason, label: REASON_LABEL[x.reason] + (LOSS_REASONS.includes(x.reason) ? '' : ' (não é perda)'), value: x.value, qty: x.quantity }))} />
-          <Bars title="Categorias com maior perda" rows={data.losses.byCategory.map((x) => ({ key: x.category, label: x.category, value: x.value, qty: x.quantity }))} />
+          <Bars title="Setores com maior perda" rows={data.losses.byCategory.map((x) => ({ key: x.category, label: x.category, value: x.value, qty: x.quantity }))} />
           {data.losses.byStore.length > 1 && (
             <Bars title="Lojas com maior perda" rows={data.losses.byStore.map((x) => ({ key: String(x.storeId), label: `${x.name} · ${x.expiredCount} vencidos`, value: x.value, qty: x.quantity }))} />
           )}

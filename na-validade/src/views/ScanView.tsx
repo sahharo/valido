@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Camera, Check, Globe, Keyboard, LoaderCircle, Minus, PackagePlus, PackageX, Plus, Search, X } from 'lucide-react'
 import { UNITS } from '../../shared/domain.ts'
 import { barcodeError, onlyDigits } from '../../shared/validation.ts'
-import { api, ApiError, post } from '../api.ts'
+import { api, ApiError, patch, post } from '../api.ts'
 import { CategoryIcon } from '../components/CategoryIcon.tsx'
 import { LotCard, ProductThumb } from '../components/LotCard.tsx'
 import { Chips, ErrorBox, Field, FormError, inputCls, Loading, PrimaryButton, secondaryBtn } from '../components/ui.tsx'
@@ -260,7 +260,7 @@ function ProductForm({ code, onCancel, onSaved }: { code: string; onCancel: () =
           <input className={inputCls} value={f.brand} onChange={(e) => set('brand', e.target.value)} placeholder="Opcional" maxLength={100} />
         </Field>
         <div className="space-y-1.5">
-          <span className="pl-1 text-sm font-bold text-stone-600">Categoria *</span>
+          <span className="pl-1 text-sm font-bold text-stone-600">Setor *</span>
           <Chips options={CATEGORIES} value={f.category as (typeof CATEGORIES)[number] | null} onChange={(c) => set('category', c)} />
         </div>
         <div className="space-y-1.5">
@@ -312,9 +312,11 @@ function LotForm({
     setError('')
     try {
       // Product found only in the public database: it is added to the catalog first.
-      const productId = suggestion
-        ? (await post<{ product: ProductInfo }>('/api/products/import', { barcode: product.barcode, category: category ?? undefined })).product.id
-        : product.id
+      let productId = product.id
+      if (suggestion)
+        productId = (await post<{ product: ProductInfo }>('/api/products/import', { barcode: product.barcode, category: category ?? undefined })).product.id
+      // The sector belongs to the product, so changing it here updates the product for all its lots.
+      else if (category && category !== product.category) await patch(`/api/products/${product.id}`, { category })
       await post('/api/lots', {
         productId, storeIds, quantity: q ?? undefined, expiryDate: expiry, notes: notes.trim() || null,
       })
@@ -351,11 +353,13 @@ function LotForm({
       </div>
 
       <div className="space-y-4">
-        {suggestion && !suggestion.category && (
+        {suggestion || can('products:write') ? (
           <div className="space-y-1.5">
-            <span className="pl-1 text-sm font-bold text-stone-600">Categoria *</span>
+            <span className="pl-1 text-sm font-bold text-stone-600">Setor *</span>
             <Chips options={CATEGORIES} value={category as (typeof CATEGORIES)[number] | null} onChange={(c) => setCategory(c)} />
           </div>
+        ) : (
+          <p className="pl-1 text-sm font-bold text-stone-600">Setor: <span className="text-stone-800">{product.category}</span></p>
         )}
         {stores.length > 1 ? (
           <div className="space-y-1.5">

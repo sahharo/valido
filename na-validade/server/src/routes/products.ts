@@ -16,7 +16,7 @@ const productBody = z.object({
   barcode,
   name: z.string().trim().min(2, 'Informe o nome do produto.').max(200),
   brand: optionalText(100),
-  category: z.enum(CATEGORIES, 'Escolha a categoria.'),
+  category: z.enum(CATEGORIES, 'Escolha o setor.'),
   unit: z.enum(UNITS, 'Escolha a unidade.').default('un'),
   costPrice: money,
   imageUrl: z.url({ protocol: /^https$/ }).max(500).nullable().optional(),

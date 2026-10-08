@@ -53,7 +53,7 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
     }
     downloadCsv(
       `lotes-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Loja', 'Código', 'Produto', 'Marca', 'Categoria', 'Lote', 'Quantidade', 'Unidade', 'Validade', 'Dias restantes', 'Situação', 'Cadastrado em'],
+      ['Loja', 'Código', 'Produto', 'Marca', 'Setor', 'Lote', 'Quantidade', 'Unidade', 'Validade', 'Dias restantes', 'Situação', 'Cadastrado em'],
       all.map((l) => [
         l.store.name, l.product.barcode, l.product.name, l.product.brand, l.product.category, l.lotNumber, l.quantity,
         l.product.unit, formatDate(l.expiryDate), l.daysLeft, l.status === 'active' ? l.expiry : l.status, formatDateTime(l.createdAt),
@@ -95,7 +95,7 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
       {showFilters && (
         <div className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
           <label className="block space-y-1.5">
-            <span className="pl-1 text-sm font-bold text-stone-600">Categoria</span>
+            <span className="pl-1 text-sm font-bold text-stone-600">Setor</span>
             <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Todas</option>
               {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
