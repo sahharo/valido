@@ -21,7 +21,7 @@ export function CategoryIcon({ category, size = 'md' }: { category: string; size
   const Icon = MAP[category]?.icon ?? Package
   const box = size === 'lg' ? 'h-14 w-14 rounded-xl' : 'h-11 w-11 rounded-xl'
   return (
-    <div className={`${box} grid bg-stone-100 text-stone-500 shrink-0 place-items-center`}>
+    <div className={`${box} grid bg-surface text-ink-2 shrink-0 place-items-center`}>
       <Icon className={size === 'lg' ? 'h-7 w-7' : 'h-5 w-5'} />
     </div>
   )

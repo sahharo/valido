@@ -38,7 +38,7 @@ export function PersonFields({ value: f, onChange }: { value: PersonDraft; onCha
         <input className={inputCls} inputMode="tel" value={f.phone} onChange={(e) => set('phone', maskPhone(e.target.value))} placeholder="(11) 98765-4321" />
       </Field>
       <div className="space-y-1.5">
-        <span className="pl-1 text-sm font-bold text-stone-600">Cargo</span>
+        <span className="pl-1 text-sm font-bold text-ink-2">Cargo</span>
         <Chips options={JOB_TITLES} value={f.jobTitle} onChange={(v) => set('jobTitle', v)} />
       </div>
     </>
@@ -61,32 +61,32 @@ export function UsersSection({ stores, currentUserId }: { stores: StoreInfo[]; c
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Equipe ({data?.items.length ?? '…'})</h2>
         {!adding && (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-bold text-white">
+          <button onClick={() => setAdding(true)} className="flex items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-sm font-bold text-on-brand">
             <Plus className="h-4 w-4" /> Adicionar
           </button>
         )}
       </div>
       {adding && <NewUserForm stores={stores} onClose={() => setAdding(false)} />}
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" aria-hidden />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-3" aria-hidden />
         <input className={`${inputCls} pl-12`} type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome ou e-mail" aria-label="Buscar na equipe" />
       </div>
-      {shown?.length === 0 && <p className="py-4 text-center text-sm text-stone-500">Ninguém encontrado com "{search}".</p>}
+      {shown?.length === 0 && <p className="py-4 text-center text-sm text-ink-2">Ninguém encontrado com "{search}".</p>}
       {shown?.map((u) =>
         editing === u.id ? (
           <EditUserForm key={u.id} user={u} stores={stores} self={u.id === currentUserId} onClose={() => setEditing(null)} />
         ) : (
-          <button key={u.id} onClick={() => setEditing(u.id)} className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left ring-1 ring-stone-200">
-            <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full font-semibold ${u.active ? 'bg-brand-100 text-brand-700' : 'bg-stone-100 text-stone-400'}`}>
+          <button key={u.id} onClick={() => setEditing(u.id)} className="flex w-full items-center gap-3 rounded-xl bg-card p-4 text-left ring-1 ring-line">
+            <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full font-semibold ${u.active ? 'bg-surface text-brand' : 'bg-surface text-ink-3'}`}>
               {`${u.firstName[0]}${u.lastName[0]}`.toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-bold">{u.firstName} {u.lastName}{u.id === currentUserId && ' (você)'}</p>
-              <p className="truncate text-xs text-stone-500">
+              <p className="truncate text-xs text-ink-2">
                 {ROLE_LABEL[u.role]} · {u.jobTitle} · {u.role === 'admin' ? 'todas as lojas' : u.storeIds.map((id) => storeName.get(id)).filter(Boolean).join(', ') || 'nenhuma loja'}
               </p>
             </div>
-            {!u.active && <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-bold text-stone-500">Inativo</span>}
+            {!u.active && <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-bold text-ink-2">Inativo</span>}
           </button>
         ),
       )}
@@ -97,24 +97,24 @@ export function UsersSection({ stores, currentUserId }: { stores: StoreInfo[]; c
 function RolePicker({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
   return (
     <div className="space-y-1.5">
-      <span className="pl-1 text-sm font-bold text-stone-600">Perfil de acesso</span>
+      <span className="pl-1 text-sm font-bold text-ink-2">Perfil de acesso</span>
       <Chips options={ROLES} value={value} onChange={onChange} labels={ROLE_LABEL} />
-      <p className="pl-1 text-xs text-stone-500">{ROLE_HELP[value]}</p>
+      <p className="pl-1 text-xs text-ink-2">{ROLE_HELP[value]}</p>
     </div>
   )
 }
 
 function StorePicker({ stores, value, onChange, role }: { stores: StoreInfo[]; value: number[]; onChange: (ids: number[]) => void; role: Role }) {
-  if (role === 'admin') return <p className="pl-1 text-sm text-stone-500">Administradores acessam todas as lojas.</p>
+  if (role === 'admin') return <p className="pl-1 text-sm text-ink-2">Administradores acessam todas as lojas.</p>
   return (
     <div className="space-y-1.5">
-      <span className="pl-1 text-sm font-bold text-stone-600">Lojas que pode acessar</span>
+      <span className="pl-1 text-sm font-bold text-ink-2">Lojas que pode acessar</span>
       <div className="space-y-1.5">
         {stores.map((s) => (
-          <label key={s.id} className="flex items-center gap-3 rounded-xl bg-stone-50 p-3 text-sm font-semibold">
+          <label key={s.id} className="flex items-center gap-3 rounded-xl bg-surface p-3 text-sm font-semibold">
             <input
               type="checkbox"
-              className="h-5 w-5 accent-brand-500"
+              className="h-5 w-5 accent-brand"
               checked={value.includes(s.id)}
               onChange={(e) => onChange(e.target.checked ? [...value, s.id] : value.filter((id) => id !== s.id))}
             />
@@ -128,10 +128,10 @@ function StorePicker({ stores, value, onChange, role }: { stores: StoreInfo[]; v
 
 function Panel({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+    <div className="animate-pop space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
       <div className="flex items-center justify-between">
-        <p className="flex items-center gap-2 font-semibold"><UserRound className="h-5 w-5 text-brand-500" /> {title}</p>
-        <button onClick={onClose} aria-label="Fechar" className="text-stone-400"><X className="h-5 w-5" /></button>
+        <p className="flex items-center gap-2 font-semibold"><UserRound className="h-5 w-5 text-brand" /> {title}</p>
+        <button onClick={onClose} aria-label="Fechar" className="text-ink-3"><X className="h-5 w-5" /></button>
       </div>
       {children}
     </div>
@@ -180,7 +180,7 @@ function NewUserForm({ stores, onClose }: { stores: StoreInfo[]; onClose: () => 
         <input className={inputCls} inputMode="numeric" value={f.document} onChange={(e) => set('document', maskCPF(e.target.value))} placeholder="000.000.000-00" />
       </Field>
       <div className="space-y-1.5">
-        <span className="pl-1 text-sm font-bold text-stone-600">Cargo</span>
+        <span className="pl-1 text-sm font-bold text-ink-2">Cargo</span>
         <Chips options={JOB_TITLES} value={f.jobTitle} onChange={(v) => set('jobTitle', v)} />
       </div>
       <RolePicker value={f.role} onChange={(r) => set('role', r)} />
@@ -225,7 +225,7 @@ function EditUserForm({ user, stores, self, onClose }: { user: CompanyUser; stor
     <Panel title={`${user.firstName} ${user.lastName}`} onClose={onClose}>
       <PersonFields value={person} onChange={setPerson} />
       {self ? (
-        <p className="rounded-xl bg-stone-50 p-3 text-sm text-stone-600">Você não pode alterar o próprio perfil de acesso nem se desativar.</p>
+        <p className="rounded-xl bg-surface p-3 text-sm text-ink-2">Você não pode alterar o próprio perfil de acesso nem se desativar.</p>
       ) : (
         <>
           <RolePicker value={role} onChange={setRole} />

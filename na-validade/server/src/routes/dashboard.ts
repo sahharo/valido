@@ -6,7 +6,7 @@ import { lots } from '../db/schema.ts'
 import { badRequest, parse } from '../lib/http.ts'
 import { isoDate, optionalId } from '../lib/schemas.ts'
 import {
-  lossesByCategory, lossesByProduct, lossesByStore, lossTotals, monthLosses, productsAtRisk, todayPriorities,
+  avoidedLosses, hasCostPrices, lossesByCategory, lossesByProduct, lossesByStore, lossTotals, monthLosses, monthlyLosses, productsAtRisk, todayPriorities,
   withdrawalHistory, withdrawalsByReason,
 } from '../services/insights.ts'
 import { activeLotsIn, expiryCountsByStore, fefoOrder, selectLots, withExpiry } from '../services/lotQueries.ts'
@@ -48,7 +48,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
     const period = { from: q.from ?? `${today.slice(0, 8)}01`, to: q.to ?? today }
     if (period.from > period.to) throw badRequest('A data inicial deve ser anterior à final.')
     const scope = { companyId: ctx.company.id, storeIds: storeScope(ctx, q.storeId) }
-    const [total, byReason, byProduct, byCategory, byStore, history, atRisk, validity] = await Promise.all([
+    const [total, byReason, byProduct, byCategory, byStore, history, atRisk, validity, avoided, monthly, hasCosts] = await Promise.all([
       lossTotals(scope, period),
       withdrawalsByReason(scope, period),
       lossesByProduct(scope, period),
@@ -57,7 +57,10 @@ export async function dashboardRoutes(app: FastifyInstance) {
       withdrawalHistory(scope, period),
       productsAtRisk(scope),
       validityByStore(ctx.company.id, ctx.stores.filter((s) => scope.storeIds.includes(s.id))),
+      avoidedLosses(scope, period),
+      monthlyLosses(scope),
+      hasCostPrices(ctx.company.id),
     ])
-    return { period, losses: { total, byReason, byProduct, byCategory, byStore }, history, atRisk, validity }
+    return { period, losses: { total, byReason, byProduct, byCategory, byStore }, history, atRisk, validity, avoided, monthly, hasCosts }
   })
 }

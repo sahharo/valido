@@ -1,4 +1,4 @@
-// HTTP client for the Na Validade API. The session lives in an HttpOnly cookie; mutations send the
+// HTTP client for the Validei API. The session lives in an HttpOnly cookie; mutations send the
 // X-Requested-With header the API requires as CSRF protection.
 export class ApiError extends Error {
   status: number

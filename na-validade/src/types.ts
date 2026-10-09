@@ -55,6 +55,8 @@ export interface LotItem {
   createdAt: string
   withdrawnAt: string | null
   withdrawalReason: WithdrawalReason | null
+  promoSince: string | null
+  promoDiscount: number | null
   daysLeft: number
   expiry: ExpiryStatus
   product: ProductInfo
@@ -108,8 +110,11 @@ export interface ReportData {
     lotId: number; lotNumber: string | null; expiryDate: string; product: string; barcode: string; category: string
     unit: string; store: string; user: string
   }[]
-  atRisk: { productId: number; name: string; category: string; unit: string; lots: number; quantity: number; value: number; nextExpiry: string }[]
+  atRisk: { productId: number; name: string; category: string; unit: string; lots: number; quantity: number; value: number; nextExpiry: string; stores: string }[]
   validity: { counts: Counts; byStore: StoreCounts[] }
+  avoided: { count: number; quantity: number; value: number; missingCost: number }
+  monthly: { month: string; quantity: number; value: number }[]
+  hasCosts: boolean
 }
 
 export interface NotificationItem {

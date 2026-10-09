@@ -8,7 +8,7 @@ import { formatDateTime } from '../utils.ts'
 import { EmptyState, Sheet } from './ui.tsx'
 
 const ICON = { critical: AlertTriangle, warning: Clock, info: Info }
-const CLS = { critical: 'bg-rose-100 text-rose-600', warning: 'bg-orange-100 text-orange-600', info: 'bg-sky-100 text-sky-600' }
+const CLS = { critical: 'bg-danger-bg text-danger', warning: 'bg-warning-bg text-warning', info: 'bg-surface text-ink-2' }
 
 // In-app alerts (bell in the header).
 export function NotificationsBell() {
@@ -30,11 +30,11 @@ export function NotificationsBell() {
       <button
         onClick={() => setOpen(true)}
         aria-label={unread ? `Avisos: ${unread} não lidos` : 'Avisos'}
-        className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-stone-600 ring-1 ring-stone-200"
+        className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card text-ink-2 ring-1 ring-line"
       >
         <Bell className="h-5 w-5" />
         {unread > 0 && (
-          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[11px] font-semibold text-white">
+          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-semibold text-on-brand">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
@@ -46,17 +46,17 @@ export function NotificationsBell() {
           ) : (
             <div className="space-y-2">
               {unread > 0 && (
-                <button onClick={markAll} className="mb-1 text-sm font-bold text-brand-600">Marcar todos como lidos</button>
+                <button onClick={markAll} className="mb-1 text-sm font-bold text-brand">Marcar todos como lidos</button>
               )}
               {data.items.map((n) => {
                 const Icon = ICON[n.severity]
                 return (
-                  <div key={n.id} className={`flex gap-3 rounded-xl bg-white p-3 ring-1 ${n.read ? 'ring-stone-100' : 'ring-1 ring-stone-200'}`}>
+                  <div key={n.id} className={`flex gap-3 rounded-xl bg-card p-3 ring-1 ${n.read ? 'ring-line' : 'ring-1 ring-line'}`}>
                     <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${CLS[n.severity]}`}><Icon className="h-5 w-5" /></span>
                     <div className="min-w-0">
                       <p className="font-bold leading-tight">{n.title}</p>
-                      <p className="text-sm text-stone-600">{n.body}</p>
-                      <p className="mt-0.5 text-xs text-stone-400">{formatDateTime(n.createdAt)}{!n.read && ' · novo'}</p>
+                      <p className="text-sm text-ink-2">{n.body}</p>
+                      <p className="mt-0.5 text-xs text-ink-3">{formatDateTime(n.createdAt)}{!n.read && ' · novo'}</p>
                     </div>
                   </div>
                 )

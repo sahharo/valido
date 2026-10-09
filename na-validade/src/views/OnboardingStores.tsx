@@ -41,21 +41,21 @@ export function OnboardingStores({ user, onLogout }: { user: Me['user']; onLogou
   return (
     <div className="mx-auto min-h-screen max-w-lg space-y-5 px-4 pb-10 pt-[max(2rem,env(safe-area-inset-top))]">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Passo 2 de 2 · Suas lojas</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand">Passo 2 de 2 · Suas lojas</p>
         <h1 className="mt-1 text-2xl font-semibold">Olá, {user.firstName}! Vamos cadastrar suas lojas.</h1>
       </div>
 
-      <div className="rounded-2xl bg-brand-500 p-5 text-white">
+      <div className="rounded-2xl bg-brand p-5 text-on-brand">
         <p className="font-bold">Quantas lojas você tem?</p>
         <div className="mt-3 flex items-center justify-between">
-          <button onClick={() => setCount(count - 1)} className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 active:scale-95" aria-label="Menos">
+          <button onClick={() => setCount(count - 1)} className="grid h-12 w-12 place-items-center rounded-xl bg-on-brand/20 active:scale-95" aria-label="Menos">
             <Minus className="h-6 w-6" />
           </button>
           <div className="text-center">
             <p className="text-5xl font-semibold leading-none">{count}</p>
-            <p className="text-sm font-semibold text-white/90">{count === 1 ? 'loja' : 'lojas'}</p>
+            <p className="text-sm font-semibold text-on-brand/90">{count === 1 ? 'loja' : 'lojas'}</p>
           </div>
-          <button onClick={() => setCount(count + 1)} className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 active:scale-95" aria-label="Mais">
+          <button onClick={() => setCount(count + 1)} className="grid h-12 w-12 place-items-center rounded-xl bg-on-brand/20 active:scale-95" aria-label="Mais">
             <Plus className="h-6 w-6" />
           </button>
         </div>
@@ -64,7 +64,7 @@ export function OnboardingStores({ user, onLogout }: { user: Me['user']; onLogou
             <button
               key={n}
               onClick={() => setCount(n)}
-              className={`h-9 w-9 rounded-full text-sm font-semibold transition ${count === n ? 'bg-white text-brand-600' : 'bg-white/20 text-white'}`}
+              className={`h-9 w-9 rounded-full text-sm font-semibold transition ${count === n ? 'bg-card text-brand' : 'bg-on-brand/20 text-on-brand'}`}
             >
               {n}
             </button>
@@ -73,9 +73,9 @@ export function OnboardingStores({ user, onLogout }: { user: Me['user']; onLogou
       </div>
 
       {drafts.map((d, i) => (
-        <div key={i} className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+        <div key={i} className="animate-pop space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-brand-600">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-surface text-brand">
               <StoreIcon className="h-5 w-5" />
             </div>
             <p className="text-lg font-semibold">Loja {i + 1}</p>
@@ -91,7 +91,7 @@ export function OnboardingStores({ user, onLogout }: { user: Me['user']; onLogou
       {showErrors && hasErrors && <FormError message="Confira os campos destacados." />}
       <FormError message={error} />
       <PrimaryButton loading={loading} onClick={finish}>Concluir cadastro</PrimaryButton>
-      <button onClick={onLogout} className="w-full text-center text-sm font-bold text-stone-400">Sair</button>
+      <button onClick={onLogout} className="w-full text-center text-sm font-bold text-ink-3">Sair</button>
     </div>
   )
 }

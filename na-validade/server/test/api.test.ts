@@ -252,6 +252,21 @@ describe('retirada, histórico e perdas', () => {
     expect(d.losses.expired.value).toBe(22.5)
   })
 
+  it('promoção marca o lote e a venda em promoção conta como perda evitada', async () => {
+    const on = await employee.post(`/api/lots/${partialLot}/promotion`, { discount: 30 })
+    expect(on.status).toBe(200)
+    expect(on.body.lot).toMatchObject({ promoDiscount: 30, quantity: 10, status: 'active' })
+    expect(on.body.lot.promoSince).toBeTruthy()
+    expect((await employee.post(`/api/lots/${partialLot}/promotion`, { discount: 95 })).status).toBe(400)
+    await employee.post(`/api/lots/${partialLot}/withdraw`, { quantity: 1, reason: 'sold' })
+    const r = (await manager.get('/api/reports')).body
+    expect(r.losses.total.value).toBe(58.5)
+    expect(r.avoided.quantity).toBe(3)
+    expect(r.monthly).toHaveLength(6)
+    const off = await employee.post(`/api/lots/${partialLot}/promotion`, { active: false })
+    expect(off.body.lot.promoSince).toBeNull()
+  })
+
   it('só admin arquiva; o lote sai das listas mas o histórico continua', async () => {
     const id = (await employee.get('/api/lots?q=B')).body.items.find((l: { lotNumber: string }) => l.lotNumber === 'B').id
     expect((await manager.post(`/api/lots/${id}/archive`, { notes: 'cadastro duplicado' })).status).toBe(403)

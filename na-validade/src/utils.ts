@@ -24,14 +24,14 @@ export function daysUntil(iso: string) {
 
 type DisplayStatus = ExpiryStatus | 'withdrawn' | 'archived'
 
-// Colors follow severity (red, orange, yellow, green) and every status also has an icon and a text label.
+// Color only for urgency (red = expired, amber = this week); later expiries stay neutral, and every status also has an icon and a text label.
 export const STATUS_META: Record<DisplayStatus, { label: string; badge: string; bar: string; icon: LucideIcon }> = {
-  expired: { label: 'Vencido', badge: 'bg-rose-100 text-rose-700', bar: 'bg-rose-500', icon: AlertTriangle },
-  week: { label: 'Até 7 dias', badge: 'bg-orange-100 text-orange-700', bar: 'bg-orange-400', icon: Clock },
-  month: { label: 'Até 30 dias', badge: 'bg-yellow-100 text-yellow-800', bar: 'bg-yellow-400', icon: CalendarClock },
-  ok: { label: 'Em dia', badge: 'bg-brand-100 text-brand-700', bar: 'bg-brand-400', icon: CircleCheck },
-  withdrawn: { label: 'Retirado', badge: 'bg-stone-100 text-stone-600', bar: 'bg-stone-300', icon: PackageCheck },
-  archived: { label: 'Arquivado', badge: 'bg-stone-100 text-stone-500', bar: 'bg-stone-200', icon: Archive },
+  expired: { label: 'Vencido', badge: 'bg-danger-bg text-danger', bar: 'bg-danger', icon: AlertTriangle },
+  week: { label: 'Até 7 dias', badge: 'bg-warning-bg text-warning', bar: 'bg-warning', icon: Clock },
+  month: { label: 'Até 30 dias', badge: 'bg-surface text-ink-2', bar: 'bg-ink-3/40', icon: CalendarClock },
+  ok: { label: 'Em dia', badge: 'bg-surface text-ink-3', bar: 'bg-line', icon: CircleCheck },
+  withdrawn: { label: 'Retirado', badge: 'bg-surface text-ink-2', bar: 'bg-ink-3/40', icon: PackageCheck },
+  archived: { label: 'Arquivado', badge: 'bg-surface text-ink-2', bar: 'bg-surface', icon: Archive },
 }
 
 export const lotStatus = (l: LotItem): DisplayStatus => (l.status === 'active' ? l.expiry : l.status)

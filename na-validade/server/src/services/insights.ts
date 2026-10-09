@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm'
 import { LOSS_REASONS } from '../../../shared/domain.ts'
 import { inStores } from '../auth/context.ts'
 import { db } from '../db/client.ts'
+import { env } from '../env.ts'
 import { lotMovements, lots, products, stores, users } from '../db/schema.ts'
 import { activeLotsIn, fefoOrder, selectLots, withExpiry } from './lotQueries.ts'
 
@@ -116,6 +117,54 @@ export function withdrawalHistory(scope: Scope, period: Period, limit = 300) {
     .limit(limit)
 }
 
+// Stock sold in a promotion or returned to the supplier before expiring: a loss that was avoided.
+export async function avoidedLosses(scope: Scope, period: Period) {
+  const [row] = await db
+    .select({
+      count: sql<number>`count(*)`.mapWith(Number), quantity: lossQty, value: lossValue,
+      missingCost: sql<number>`count(*) filter (where ${lotMovements.totalCost} is null)`.mapWith(Number),
+    })
+    .from(lotMovements)
+    .innerJoin(lots, eq(lots.id, lotMovements.lotId))
+    .where(and(
+      withdrawalsIn(scope, period, false),
+      inArray(lotMovements.reason, ['sold', 'returned']),
+      sql`${lotMovements.createdAt}::date <= ${lots.expiryDate}`,
+    ))
+  return row
+}
+
+export async function hasCostPrices(companyId: number) {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)`.mapWith(Number) })
+    .from(products)
+    .where(and(eq(products.companyId, companyId), sql`${products.costPrice} is not null`))
+  return row.n > 0
+}
+
+// Losses per calendar month for the last `months` months (current one included), empty months as zero.
+export async function monthlyLosses({ companyId, storeIds }: Scope, months = 6) {
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: env.timezone })
+  const [y, m] = today.split('-').map(Number)
+  const keys = Array.from({ length: months }, (_, i) => {
+    const d = new Date(Date.UTC(y, m - 1 - (months - 1 - i), 1))
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+  })
+  const month = sql<string>`to_char(date_trunc('month', ${lotMovements.createdAt}), 'YYYY-MM')`
+  const rows = await db
+    .select({ month, quantity: lossQty, value: lossValue })
+    .from(lotMovements)
+    .where(and(
+      eq(lotMovements.companyId, companyId),
+      inStores(lotMovements.storeId, storeIds),
+      eq(lotMovements.type, 'withdrawal'),
+      inArray(lotMovements.reason, [...LOSS_REASONS]),
+      sql`${lotMovements.createdAt} >= ${`${keys[0]}-01`}::date`,
+    ))
+    .groupBy(sql`date_trunc('month', ${lotMovements.createdAt})`)
+  return keys.map((k) => rows.find((r) => r.month === k) ?? { month: k, quantity: 0, value: 0 })
+}
+
 // Products with the most money at risk among active lots expiring within `days` (already expired included).
 export function productsAtRisk({ companyId, storeIds }: Scope, days = 7, limit = 10) {
   const value = num(sql`sum(${lots.quantity} * coalesce(${lots.unitCost}, ${products.costPrice}))`)
@@ -124,9 +173,11 @@ export function productsAtRisk({ companyId, storeIds }: Scope, days = 7, limit =
       productId: products.id, name: products.name, category: products.category, unit: products.unit,
       lots: sql<number>`count(*)`.mapWith(Number), quantity: num(sql`sum(${lots.quantity})`), value,
       nextExpiry: sql<string>`min(${lots.expiryDate})`,
+      stores: sql<string>`string_agg(distinct ${stores.name}, ', ')`,
     })
     .from(lots)
     .innerJoin(products, eq(products.id, lots.productId))
+    .innerJoin(stores, eq(stores.id, lots.storeId))
     .where(and(activeLotsIn(companyId, storeIds), sql`${lots.expiryDate} <= current_date + ${sql.raw(String(Math.trunc(days)))}`))
     .groupBy(products.id)
     .orderBy(desc(value), sql`min(${lots.expiryDate})`)

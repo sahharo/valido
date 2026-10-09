@@ -14,17 +14,17 @@ export function AuthView({ onAuth }: { onAuth: (me: Me) => void }) {
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
       <div className="mb-6 flex flex-col items-center text-center">
         <img src="/favicon.svg" alt="" className="mb-3 h-20 w-20 rounded-2xl" />
-        <h1 className="text-3xl font-semibold text-stone-800">Na Validade</h1>
-        <p className="mt-1 text-sm font-semibold text-stone-500">Controle de validade dos seus produtos</p>
+        <h1 className="text-3xl font-semibold text-ink">Validei</h1>
+        <p className="mt-1 text-sm font-semibold text-ink-2">Controle de validade dos seus produtos</p>
       </div>
 
-      <div className="rounded-2xl bg-white/80 p-5 ring-1 ring-stone-200 backdrop-blur">
-        <div className="mb-5 grid grid-cols-2 rounded-xl bg-stone-100 p-1">
+      <div className="rounded-2xl bg-card/80 p-5 ring-1 ring-line backdrop-blur">
+        <div className="mb-5 grid grid-cols-2 rounded-xl bg-surface p-1">
           {(['login', 'signup'] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`rounded-xl py-2.5 text-sm font-semibold transition ${mode === m ? 'bg-white text-brand-600' : 'text-stone-500'}`}
+              className={`rounded-xl py-2.5 text-sm font-semibold transition ${mode === m ? 'bg-card text-brand' : 'text-ink-2'}`}
             >
               {m === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
@@ -62,7 +62,7 @@ function LoginForm({ onAuth, onSignup }: { onAuth: (me: Me) => void; onSignup: (
       {/* Everyone (owner and team) logs in with e-mail. */}
       <Field label="E-mail">
         <div className="relative">
-          <AtSign className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" />
+          <AtSign className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-3" />
           <input
             className={`${inputCls} pl-12`}
             type="email"
@@ -78,13 +78,13 @@ function LoginForm({ onAuth, onSignup }: { onAuth: (me: Me) => void; onSignup: (
       <Field label="Senha">
         <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sua senha" autoComplete="current-password" />
       </Field>
-      {error && <p className="rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-700">{error}</p>}
+      {error && <p className="rounded-xl bg-danger-bg p-3 text-sm font-bold text-danger">{error}</p>}
       <PrimaryButton loading={loading} disabled={!identifier || !password}>
         <KeyRound className="h-5 w-5" /> Entrar
       </PrimaryButton>
-      <p className="text-center text-sm text-stone-500">
+      <p className="text-center text-sm text-ink-2">
         Ainda não tem conta?{' '}
-        <button type="button" onClick={onSignup} className="font-semibold text-brand-600">Cadastre-se</button>
+        <button type="button" onClick={onSignup} className="font-semibold text-brand">Cadastre-se</button>
       </p>
     </form>
   )
@@ -138,7 +138,7 @@ function SignupForm({ onAuth }: { onAuth: (me: Me) => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
-      <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Passo 1 de 2 · Seus dados</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand">Passo 1 de 2 · Seus dados</p>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Nome *" error={errors.firstName}>
           <input className={inputCls} value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" placeholder="Maria" />
@@ -151,7 +151,7 @@ function SignupForm({ onAuth }: { onAuth: (me: Me) => void }) {
       <Field label="E-mail *" hint="Você vai usar o e-mail para entrar no app." error={errors.email}>
         <input className={inputCls} type="email" value={f.email} onChange={(e) => set('email', e.target.value.trim())} autoComplete="email" placeholder="voce@email.com" />
         {suggestEmail(f.email) && (
-          <button type="button" onClick={() => set('email', suggestEmail(f.email)!)} className="pl-1 text-left text-xs font-bold text-amber-700">
+          <button type="button" onClick={() => set('email', suggestEmail(f.email)!)} className="pl-1 text-left text-xs font-bold text-warning">
             Você quis dizer <span className="underline">{suggestEmail(f.email)}</span>?
           </button>
         )}
@@ -160,7 +160,7 @@ function SignupForm({ onAuth }: { onAuth: (me: Me) => void }) {
         <input className={inputCls} inputMode="tel" value={f.phone} onChange={(e) => set('phone', maskPhone(e.target.value))} autoComplete="tel-national" placeholder="(11) 98765-4321" />
       </Field>
       <div className="space-y-1.5">
-        <span className="pl-1 text-sm font-bold text-stone-600">Cargo</span>
+        <span className="pl-1 text-sm font-bold text-ink-2">Cargo</span>
         <Chips options={JOB_TITLES} value={f.jobTitle} onChange={(r) => set('jobTitle', r)} />
       </div>
       <Field label="Senha *" error={errors.password}>
@@ -170,14 +170,14 @@ function SignupForm({ onAuth }: { onAuth: (me: Me) => void }) {
       <Field label="Confirmar senha *" error={errors.confirm}>
         <PasswordInput value={f.confirm} onChange={(e) => set('confirm', e.target.value)} autoComplete="new-password" placeholder="Repita a senha" />
       </Field>
-      <label className="flex items-start gap-3 rounded-xl bg-stone-50 p-3 text-sm text-stone-600">
-        <input type="checkbox" checked={f.terms} onChange={(e) => set('terms', e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-500" />
+      <label className="flex items-start gap-3 rounded-xl bg-surface p-3 text-sm text-ink-2">
+        <input type="checkbox" checked={f.terms} onChange={(e) => set('terms', e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand" />
         <span>
           Li e aceito os <b>Termos de uso</b> e a <b>Política de privacidade</b>, e autorizo o uso dos meus dados para o funcionamento do app (LGPD).
-          {errors.terms && <span className="mt-1 block text-xs font-bold text-rose-600">{errors.terms}</span>}
+          {errors.terms && <span className="mt-1 block text-xs font-bold text-danger">{errors.terms}</span>}
         </span>
       </label>
-      {error && <p className="rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-700">{error}</p>}
+      {error && <p className="rounded-xl bg-danger-bg p-3 text-sm font-bold text-danger">{error}</p>}
       <PrimaryButton loading={loading}>Continuar</PrimaryButton>
     </form>
   )

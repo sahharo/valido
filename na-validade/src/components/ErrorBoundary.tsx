@@ -10,22 +10,22 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   }
 
   componentDidCatch(error: Error) {
-    console.error('Na Validade: erro na tela', error)
+    console.error('Validei: erro na tela', error)
   }
 
   render() {
     if (!this.state.error) return this.props.children
     return (
       <div className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 p-6 text-center">
-        <div className="grid h-16 w-16 place-items-center rounded-2xl bg-rose-100 text-rose-600">
+        <div className="grid h-16 w-16 place-items-center rounded-2xl bg-danger-bg text-danger">
           <TriangleAlert className="h-8 w-8" />
         </div>
         <p className="text-xl font-semibold">Algo deu errado nesta tela</p>
-        <p className="text-sm text-stone-600">Seus dados estão salvos. Recarregue a página para continuar.</p>
-        <p className="max-w-full break-words rounded-xl bg-stone-100 px-3 py-2 font-mono text-xs text-stone-500">{this.state.error.message}</p>
+        <p className="text-sm text-ink-2">Seus dados estão salvos. Recarregue a página para continuar.</p>
+        <p className="max-w-full break-words rounded-xl bg-surface px-3 py-2 font-mono text-xs text-ink-2">{this.state.error.message}</p>
         <button
           onClick={() => location.reload()}
-          className="flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 font-semibold text-white active:scale-95"
+          className="flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-semibold text-on-brand active:scale-95"
         >
           <RotateCw className="h-5 w-5" /> Recarregar
         </button>

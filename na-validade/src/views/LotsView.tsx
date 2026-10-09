@@ -66,36 +66,36 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Lotes</h1>
-        <button onClick={exportCsv} className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-stone-600 ring-1 ring-stone-200">
+        <button onClick={exportCsv} className="flex items-center gap-1 rounded-full bg-card px-3 py-1.5 text-sm font-bold text-ink-2 ring-1 ring-line">
           <Download className="h-4 w-4" /> Planilha
         </button>
       </div>
       <div className="flex gap-2">
-        <label className="flex flex-1 items-center gap-2 rounded-xl bg-white px-4 py-3 ring-1 ring-stone-200 focus-within:ring-2 focus-within:ring-brand-400">
-          <Search className="h-5 w-5 shrink-0 text-stone-400" />
+        <label className="flex flex-1 items-center gap-2 rounded-xl bg-card px-4 py-3 ring-1 ring-line focus-within:ring-2 focus-within:ring-brand">
+          <Search className="h-5 w-5 shrink-0 text-ink-3" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Nome, código de barras ou nº do lote"
-            className="w-full bg-transparent outline-none placeholder:text-stone-400"
+            className="w-full bg-transparent outline-none placeholder:text-ink-3"
             type="search"
           />
         </label>
         <button
           onClick={() => setShowFilters((s) => !s)}
           aria-expanded={showFilters}
-          className={`relative grid w-14 place-items-center rounded-xl ring-1 ${showFilters ? 'bg-brand-500 text-white ring-brand-500' : 'bg-white text-stone-600 ring-stone-200'}`}
+          className={`relative grid w-14 place-items-center rounded-xl ring-1 ${showFilters ? 'bg-brand text-on-brand ring-brand' : 'bg-card text-ink-2 ring-line'}`}
           aria-label="Filtros"
         >
           <SlidersHorizontal className="h-5 w-5" />
-          {activeFilters > 0 && <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-rose-500 text-[11px] font-semibold text-white">{activeFilters}</span>}
+          {activeFilters > 0 && <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-danger text-[11px] font-semibold text-on-brand">{activeFilters}</span>}
         </button>
       </div>
 
       {showFilters && (
-        <div className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+        <div className="animate-pop space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
           <label className="block space-y-1.5">
-            <span className="pl-1 text-sm font-bold text-stone-600">Setor</span>
+            <span className="pl-1 text-sm font-bold text-ink-2">Setor</span>
             <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Todas</option>
               {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
@@ -103,16 +103,16 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1.5">
-              <span className="pl-1 text-sm font-bold text-stone-600">Vence a partir de</span>
+              <span className="pl-1 text-sm font-bold text-ink-2">Vence a partir de</span>
               <input type="date" className={inputCls} value={from} onChange={(e) => setFrom(e.target.value)} />
             </label>
             <label className="block space-y-1.5">
-              <span className="pl-1 text-sm font-bold text-stone-600">Vence até</span>
+              <span className="pl-1 text-sm font-bold text-ink-2">Vence até</span>
               <input type="date" className={inputCls} value={to} onChange={(e) => setTo(e.target.value)} />
             </label>
           </div>
           {activeFilters > 0 && (
-            <button onClick={() => { setCategory(''); setFrom(''); setTo('') }} className="text-sm font-bold text-brand-600">
+            <button onClick={() => { setCategory(''); setFrom(''); setTo('') }} className="text-sm font-bold text-brand">
               Limpar filtros
             </button>
           )}
@@ -126,7 +126,7 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
             aria-pressed={filter === f.id}
             onClick={() => { setFilter(f.id); setLimit(50) }}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${
-              filter === f.id ? 'bg-brand-500 text-white' : 'bg-white text-stone-600 ring-1 ring-stone-200'
+              filter === f.id ? 'bg-brand text-on-brand' : 'bg-surface text-ink-2'
             }`}
           >
             {f.label}
@@ -140,7 +140,7 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
         <Loading />
       ) : (
         <>
-          <p className="text-sm font-semibold text-stone-500">
+          <p className="text-sm font-semibold text-ink-2">
             {data.total} {data.total === 1 ? 'lote' : 'lotes'}
             {['active', 'expired', 'week', 'month', 'ok'].includes(filter) && ' · ordem: o que vence primeiro'}
           </p>
@@ -154,7 +154,7 @@ export function LotsView({ storeId, filter, setFilter }: { storeId: number | 'al
             </div>
           )}
           {data.items.length < data.total && (
-            <button onClick={() => setLimit((n) => n + 50)} className="w-full rounded-xl bg-white py-3 font-bold text-brand-700 ring-1 ring-stone-200">
+            <button onClick={() => setLimit((n) => n + 50)} className="w-full rounded-xl bg-card py-3 font-bold text-brand ring-1 ring-line">
               Carregar mais
             </button>
           )}

@@ -38,7 +38,7 @@ export function SettingsView({ me, onLogout }: { me: Me; onLogout: () => void })
   if (page)
     return (
       <div className="space-y-4">
-        <button onClick={() => go(null)} aria-label="Voltar" className="-ml-1 flex items-center gap-1 py-1 font-bold text-brand-600">
+        <button onClick={() => go(null)} aria-label="Voltar" className="-ml-1 flex items-center gap-1 py-1 font-bold text-brand">
           <ChevronLeft className="h-5 w-5" /> Ajustes
         </button>
         {page === 'profile' && <ProfilePage me={me} />}
@@ -64,31 +64,31 @@ export function SettingsView({ me, onLogout }: { me: Me; onLogout: () => void })
 
   return (
     <div className="space-y-5">
-      <button onClick={() => go('profile')} className="flex w-full items-center gap-4 rounded-2xl bg-white p-4 text-left ring-1 ring-stone-200 active:bg-stone-50">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-50 font-semibold text-brand-700">{initials}</div>
+      <button onClick={() => go('profile')} className="flex w-full items-center gap-4 rounded-2xl bg-card p-4 text-left ring-1 ring-line active:bg-surface">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-surface font-semibold text-brand">{initials}</div>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-stone-900">{user.firstName} {user.lastName}</p>
-          <p className="text-sm text-stone-500">{ROLE_LABEL[user.role]}</p>
+          <p className="truncate font-semibold text-ink">{user.firstName} {user.lastName}</p>
+          <p className="text-sm text-ink-2">{ROLE_LABEL[user.role]}</p>
           {/* The card is the only way into "Meus dados", so say it. */}
-          <p className="mt-0.5 text-xs font-medium text-brand-600">Ver e editar meus dados</p>
+          <p className="mt-0.5 text-xs font-medium text-brand">Ver e editar meus dados</p>
         </div>
-        <ChevronRight className="h-5 w-5 shrink-0 text-stone-300" aria-hidden />
+        <ChevronRight className="h-5 w-5 shrink-0 text-ink-3" aria-hidden />
       </button>
 
-      <nav className="divide-y divide-stone-100 overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200">
+      <nav className="divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">
         {items.map(({ page: p, icon: Icon, label, detail }) => (
-          <button key={p} onClick={() => go(p)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-stone-50">
-            <Icon className="h-5 w-5 shrink-0 text-stone-500" aria-hidden />
+          <button key={p} onClick={() => go(p)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-surface">
+            <Icon className="h-5 w-5 shrink-0 text-ink-2" aria-hidden />
             <span className="min-w-0 flex-1">
-              <span className="block font-medium text-stone-900">{label}</span>
-              {detail && <span className="block truncate text-xs text-stone-500">{detail}</span>}
+              <span className="block font-medium text-ink">{label}</span>
+              {detail && <span className="block truncate text-xs text-ink-2">{detail}</span>}
             </span>
-            <ChevronRight className="h-5 w-5 shrink-0 text-stone-300" aria-hidden />
+            <ChevronRight className="h-5 w-5 shrink-0 text-ink-3" aria-hidden />
           </button>
         ))}
       </nav>
 
-      <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 font-semibold text-rose-600 ring-1 ring-stone-200 active:bg-stone-50">
+      <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-xl bg-card py-3.5 font-semibold text-danger ring-1 ring-line active:bg-surface">
         <LogOut className="h-5 w-5" /> Sair da conta
       </button>
     </div>
@@ -114,17 +114,17 @@ function ProfilePage({ me }: { me: Me }) {
   return (
     <section className="space-y-2.5">
       <h2 className="text-lg font-semibold">Meus dados</h2>
-      <div className="divide-y divide-stone-100 overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200">
+      <div className="divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">
         {info.map(({ icon: Icon, label, value }) => (
           <div key={label} className="flex items-center gap-3 px-4 py-3">
-            <Icon className="h-5 w-5 shrink-0 text-stone-400" />
+            <Icon className="h-5 w-5 shrink-0 text-ink-3" />
             <div className="min-w-0">
-              <p className="text-xs font-bold text-stone-400">{label}</p>
+              <p className="text-xs font-bold text-ink-3">{label}</p>
               <p className="truncate font-semibold">{value}</p>
             </div>
           </div>
         ))}
-        <button onClick={() => setEditing(true)} className="flex w-full items-center justify-center gap-2 px-4 py-3.5 font-bold text-brand-600 active:bg-brand-50">
+        <button onClick={() => setEditing(true)} className="flex w-full items-center justify-center gap-2 px-4 py-3.5 font-bold text-brand active:bg-surface">
           <Pencil className="h-4 w-4" /> Editar meus dados
         </button>
       </div>
@@ -181,17 +181,17 @@ function StoresSection({ me }: { me: Me }) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{manage ? 'Lojas' : 'Minhas lojas'} ({me.stores.length})</h2>
         {manage && !adding && (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-bold text-white">
+          <button onClick={() => setAdding(true)} className="flex items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-sm font-bold text-on-brand">
             <Plus className="h-4 w-4" /> Adicionar
           </button>
         )}
       </div>
 
       {adding && (
-        <div className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+        <div className="animate-pop space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
           <div className="flex items-center justify-between">
             <p className="font-semibold">Nova loja</p>
-            <button onClick={() => { setAdding(false); setShowErrors(false) }} aria-label="Cancelar" className="text-stone-400"><X className="h-5 w-5" /></button>
+            <button onClick={() => { setAdding(false); setShowErrors(false) }} aria-label="Cancelar" className="text-ink-3"><X className="h-5 w-5" /></button>
           </div>
           <StoreFields value={draft} onChange={setDraft} errors={showErrors ? errors : undefined} />
           <FormError message={error} />
@@ -205,23 +205,23 @@ function StoresSection({ me }: { me: Me }) {
         const street = [s.address, s.addressNumber].filter(Boolean).join(', ')
         const place = [street, [s.city, s.uf].filter(Boolean).join(' / ')].filter(Boolean).join(' - ')
         return (
-          <div key={s.id} className="flex items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-stone-200">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-stone-100 text-stone-500">
+          <div key={s.id} className="flex items-center gap-3 rounded-xl bg-card p-4 ring-1 ring-line">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface text-ink-2">
               <StoreIcon className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-bold">{s.name}</p>
-              {place && <p className="flex items-center gap-1 truncate text-xs text-stone-500"><MapPin className="h-3 w-3 shrink-0" /> {place}</p>}
-              {s.cnpj && <p className="truncate text-xs text-stone-500">CNPJ {maskCNPJ(s.cnpj)}</p>}
+              {place && <p className="flex items-center gap-1 truncate text-xs text-ink-2"><MapPin className="h-3 w-3 shrink-0" /> {place}</p>}
+              {s.cnpj && <p className="truncate text-xs text-ink-2">CNPJ {maskCNPJ(s.cnpj)}</p>}
               {c && (
-                <p className="text-xs text-stone-500">
-                  {c.expired + c.week + c.month + c.ok} lotes · <span className="text-rose-600">{c.expired} {c.expired === 1 ? 'vencido' : 'vencidos'}</span> ·{' '}
-                  <span className="text-orange-600">{c.week} em 7 dias</span>
+                <p className="text-xs text-ink-2">
+                  {c.expired + c.week + c.month + c.ok} lotes · <span className="text-danger">{c.expired} {c.expired === 1 ? 'vencido' : 'vencidos'}</span> ·{' '}
+                  <span className="text-warning">{c.week} em 7 dias</span>
                 </p>
               )}
             </div>
             {can('records:archive') && (
-              <button onClick={() => archiveStore(s.id)} className="grid h-9 w-9 place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-500" aria-label={`Arquivar loja ${s.name}`}>
+              <button onClick={() => archiveStore(s.id)} className="grid h-9 w-9 place-items-center rounded-xl text-ink-3 hover:bg-danger-bg hover:text-danger" aria-label={`Arquivar loja ${s.name}`}>
                 <Archive className="h-4 w-4" />
               </button>
             )}
@@ -253,10 +253,10 @@ function ProfileForm({ me, onClose }: { me: Me; onClose: () => void }) {
     }
   }
   return (
-    <section className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+    <section className="animate-pop space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
       <div className="flex items-center justify-between">
-        <p className="flex items-center gap-2 font-semibold"><Pencil className="h-5 w-5 text-brand-500" /> Editar meus dados</p>
-        <button onClick={onClose} aria-label="Fechar" className="text-stone-400"><X className="h-5 w-5" /></button>
+        <p className="flex items-center gap-2 font-semibold"><Pencil className="h-5 w-5 text-brand" /> Editar meus dados</p>
+        <button onClick={onClose} aria-label="Fechar" className="text-ink-3"><X className="h-5 w-5" /></button>
       </div>
       <PersonFields value={f} onChange={setF} />
       <FormError message={error} />
@@ -296,19 +296,19 @@ function ThemeSection() {
     { value: 'system', label: 'Automático', icon: SunMoon },
   ]
   return (
-    <section className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+    <section className="space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
       <div>
         <h2 className="text-lg font-semibold">Aparência</h2>
-        <p className="text-sm text-stone-500">"Automático" segue o modo claro/escuro do celular.</p>
+        <p className="text-sm text-ink-2">"Automático" segue o modo claro/escuro do celular.</p>
       </div>
-      <div className="grid grid-cols-3 gap-2 rounded-xl bg-stone-100 p-1">
+      <div className="grid grid-cols-3 gap-2 rounded-xl bg-surface p-1">
         {options.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             type="button"
             aria-pressed={theme === value}
             onClick={() => { setTheme(value); setThemeState(value) }}
-            className={`flex flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition ${theme === value ? 'bg-white text-brand-700' : 'text-stone-500'}`}
+            className={`flex flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition ${theme === value ? 'bg-card text-brand' : 'text-ink-2'}`}
           >
             <Icon className="h-5 w-5" aria-hidden /> {label}
           </button>
@@ -339,10 +339,10 @@ function PasswordSection({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <section className="animate-pop space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+    <section className="animate-pop space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
       <div className="flex items-center justify-between">
         <p className="font-semibold">Alterar senha</p>
-        <button onClick={onDone} aria-label="Cancelar" className="text-stone-400"><X className="h-5 w-5" /></button>
+        <button onClick={onDone} aria-label="Cancelar" className="text-ink-3"><X className="h-5 w-5" /></button>
       </div>
       <Field label="Senha atual"><PasswordInput value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" /></Field>
       <Field label="Nova senha"><PasswordInput value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" /></Field>
@@ -357,7 +357,7 @@ const ACTIONS: Record<string, string> = {
   signup: 'Criou a conta da empresa', login: 'Entrou no app', store_create: 'Cadastrou loja', store_update: 'Editou loja',
   store_archive: 'Arquivou loja', user_create: 'Cadastrou usuário', user_update: 'Alterou usuário', user_password_reset: 'Redefiniu senha de usuário',
   company_update: 'Alterou configurações', product_create: 'Cadastrou produto', product_update: 'Editou produto', product_archive: 'Arquivou produto',
-  lot_create: 'Cadastrou lote', lot_withdraw: 'Retirou lote', lot_archive: 'Arquivou lote', receipt_create: 'Registrou entrada de mercadoria',
+  lot_create: 'Cadastrou lote', lot_withdraw: 'Retirou lote', lot_archive: 'Arquivou lote', lot_promotion: 'Colocou lote em promoção', lot_promotion_end: 'Tirou lote da promoção', receipt_create: 'Registrou entrada de mercadoria',
   password_change: 'Alterou a própria senha', profile_update: 'Editou o perfil',
 }
 
@@ -369,11 +369,11 @@ function AuditSection() {
     <section className="space-y-2.5">
       <h2 className="text-lg font-semibold">Atividade recente</h2>
       {!data ? <Loading /> : (
-        <ol className="divide-y divide-stone-100 overflow-hidden rounded-2xl bg-white text-sm ring-1 ring-stone-200">
+        <ol className="divide-y divide-line overflow-hidden rounded-2xl bg-card text-sm ring-1 ring-line">
           {data.items.map((a) => (
             <li key={a.id} className="px-4 py-2.5">
               <p className="font-bold">{ACTIONS[a.action] ?? a.action}{a.entityId ? ` #${a.entityId}` : ''}</p>
-              <p className="text-xs text-stone-500">{a.user ?? 'Sistema'} · {formatDateTime(a.createdAt)}</p>
+              <p className="text-xs text-ink-2">{a.user ?? 'Sistema'} · {formatDateTime(a.createdAt)}</p>
             </li>
           ))}
         </ol>

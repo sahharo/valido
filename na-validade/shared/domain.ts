@@ -25,7 +25,7 @@ export type Category = (typeof CATEGORIES)[number]
 export const UNITS = ['un', 'kg', 'g', 'L', 'ml', 'cx', 'pct', 'fardo'] as const
 export type Unit = (typeof UNITS)[number]
 
-export const WITHDRAWAL_REASONS = ['expired', 'damaged', 'returned', 'stock_adjustment', 'other'] as const
+export const WITHDRAWAL_REASONS = ['expired', 'damaged', 'returned', 'stock_adjustment', 'other', 'sold'] as const
 export type WithdrawalReason = (typeof WITHDRAWAL_REASONS)[number]
 export const REASON_LABEL: Record<WithdrawalReason, string> = {
   expired: 'Produto vencido',
@@ -33,6 +33,7 @@ export const REASON_LABEL: Record<WithdrawalReason, string> = {
   returned: 'Produto devolvido',
   stock_adjustment: 'Ajuste de estoque',
   other: 'Outro',
+  sold: 'Vendido em promoção',
 }
 // Reasons that count as a financial loss (a return to the supplier or a stock correction is not a loss).
 export const LOSS_REASONS: readonly WithdrawalReason[] = ['expired', 'damaged', 'other']

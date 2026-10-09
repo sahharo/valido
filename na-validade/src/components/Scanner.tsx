@@ -44,7 +44,7 @@ export function Scanner({ onDetected }: { onDetected: (code: string) => void }) 
 
   if (error) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl bg-rose-50 p-6 text-center text-rose-700">
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-danger-bg p-6 text-center text-danger">
         <CameraOff className="h-8 w-8" />
         <p className="text-sm font-semibold">{error}</p>
       </div>
@@ -52,10 +52,10 @@ export function Scanner({ onDetected }: { onDetected: (code: string) => void }) 
   }
 
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-stone-900 shadow-inner">
+    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-black shadow-inner">
       <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
       <div className="pointer-events-none absolute inset-6 rounded-xl border-2 border-white/70">
-        <div className="absolute inset-x-3 h-0.5 animate-scan rounded-full bg-brand-400" />
+        <div className="absolute inset-x-3 h-0.5 animate-scan rounded-full bg-accent" />
       </div>
       <p className="absolute inset-x-0 bottom-2 text-center text-xs font-semibold text-white/80">
         Aponte para o código de barras

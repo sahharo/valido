@@ -36,6 +36,13 @@
       "when": 1791432890615,
       "tag": "0004_email_login_store_cep",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791572493535,
+      "tag": "0005_lot_promotion",
+      "breakpoints": true
     }
   ]
 }

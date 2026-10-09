@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BarChart3, House, ListChecks, LogOut, ScanLine, Settings } from 'lucide-react'
-import { ROLE_LABEL } from '../shared/domain.ts'
+import { BarChart3, ChevronDown, House, ListChecks, LogOut, ScanLine, Settings, Store } from 'lucide-react'
 import { post } from './api.ts'
 import { LotSheetProvider } from './components/LotSheets.tsx'
 import { NotificationsBell } from './components/Notifications.tsx'
@@ -37,8 +36,8 @@ export default function App() {
     return (
       <div className="mx-auto max-w-lg space-y-4 p-6 pt-24 text-center">
         <p className="text-xl font-semibold">Olá, {me.user.firstName}!</p>
-        <p className="text-stone-600">Você ainda não tem acesso a nenhuma loja. Peça ao administrador da sua empresa para liberar.</p>
-        <button onClick={logout} className="mx-auto flex items-center gap-2 font-bold text-stone-500"><LogOut className="h-4 w-4" /> Sair</button>
+        <p className="text-ink-2">Você ainda não tem acesso a nenhuma loja. Peça ao administrador da sua empresa para liberar.</p>
+        <button onClick={logout} className="mx-auto flex items-center gap-2 font-bold text-ink-2"><LogOut className="h-4 w-4" /> Sair</button>
       </div>
     )
   }
@@ -83,37 +82,25 @@ function MainApp({ me }: { me: Me }) {
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-24 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <header className="mb-5 space-y-3">
         <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="" className="h-9 w-9 shrink-0 rounded-lg" />
+          <img src="/favicon.svg" alt="" className="h-10 w-10 shrink-0 rounded-[12px]" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-semibold leading-tight">{greeting()}, {me.user.firstName}!</p>
-            <p className="truncate text-xs font-semibold text-stone-500">{today} · {ROLE_LABEL[me.user.role]}</p>
+            <p className="truncate text-xs font-semibold text-ink-3">{today}</p>
+            <p className="truncate text-lg font-extrabold leading-tight text-ink">{greeting()}, {me.user.firstName}</p>
           </div>
           <NotificationsBell />
         </div>
-        {current !== 'ajustes' && current !== 'scan' && me.stores.length > 1 && (
-          <label className="flex items-center gap-2">
-            <span className="text-sm font-medium text-stone-500">Loja:</span>
-            <select
-              value={storeId}
-              onChange={(e) => pickStore(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              className="min-w-0 flex-1 truncate rounded-lg bg-white px-3 py-2 text-sm font-medium text-stone-700 ring-1 ring-stone-200 outline-none"
-            >
-              <option value="all">Todas as lojas</option>
-              {me.stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </label>
-        )}
+        {(current === 'inicio' || current === 'lotes') && <StoreChip me={me} value={storeId} onChange={pickStore} />}
       </header>
 
       <main key={current} className="animate-pop">
         {current === 'inicio' && <Dashboard storeId={storeId} onOpenFilter={(f) => { setFilter(f); setTab('lotes') }} />}
         {current === 'lotes' && <LotsView storeId={storeId} filter={filter} setFilter={setFilter} />}
         {current === 'scan' && <ScanView stores={me.stores} defaultStoreId={storeId} />}
-        {current === 'relatorios' && <ReportsView storeId={storeId} />}
+        {current === 'relatorios' && <ReportsView storeId={storeId} storeChip={<StoreChip me={me} value={storeId} onChange={pickStore} />} onAddCost={() => setTab('scan')} />}
         {current === 'ajustes' && <SettingsView me={me} onLogout={logout} />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex max-w-lg items-end justify-around px-2 pb-2 pt-1.5">
           <NavBtn active={current === 'inicio'} onClick={() => setTab('inicio')} icon={House} label="Início" />
           <NavBtn active={current === 'lotes'} onClick={() => { setFilter('active'); setTab('lotes') }} icon={ListChecks} label="Lotes" />
@@ -121,7 +108,7 @@ function MainApp({ me }: { me: Me }) {
             onClick={() => setTab('scan')}
             aria-label="Escanear produto"
             aria-current={current === 'scan' ? 'page' : undefined}
-            className="mx-1 -mt-7 grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-brand-500 text-white ring-4 ring-paper transition active:scale-95"
+            className="mx-1 -mt-7 grid h-16 w-16 shrink-0 place-items-center rounded-[18px] bg-brand text-accent ring-4 ring-page transition dark:text-on-brand active:scale-95"
           >
             <ScanLine className="h-8 w-8" />
           </button>
@@ -138,10 +125,30 @@ function NavBtn({ active, onClick, icon: Icon, label }: { active: boolean; onCli
     <button
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
-      className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl py-1 text-xs font-medium transition ${active ? 'text-brand-600' : 'text-stone-500'}`}
+      className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl py-1 text-xs font-bold transition ${active ? 'text-brand dark:text-accent' : 'text-ink-3'}`}
     >
       <Icon className="h-6 w-6" />
       {label}
     </button>
+  )
+}
+
+// Store picker shown as a borderless chip; only rendered when the user can see more than one store.
+function StoreChip({ me, value, onChange }: { me: Me; value: number | 'all'; onChange: (v: number | 'all') => void }) {
+  if (me.stores.length < 2) return null
+  return (
+    <label className="relative inline-flex max-w-full items-center gap-1.5 rounded-full bg-surface py-2 pl-3 pr-8 text-sm font-bold text-ink">
+      <Store className="h-4 w-4 shrink-0 text-ink-2" aria-hidden />
+      <span className="sr-only">Loja</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+        className="min-w-0 truncate appearance-none bg-transparent outline-none"
+      >
+        <option value="all">Todas as lojas</option>
+        {me.stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-ink-2" aria-hidden />
+    </label>
   )
 }

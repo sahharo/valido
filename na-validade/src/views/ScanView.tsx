@@ -41,7 +41,7 @@ function CodeEntry({ onCode }: { onCode: (code: string) => void }) {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold">Escanear produto</h1>
-        <p className="text-sm text-stone-500">Leia o código de barras (EAN) da embalagem ou digite os números.</p>
+        <p className="text-sm text-ink-2">Leia o código de barras (EAN) da embalagem ou digite os números.</p>
       </div>
 
       {scanning ? (
@@ -56,32 +56,32 @@ function CodeEntry({ onCode }: { onCode: (code: string) => void }) {
       ) : (
         <button
           onClick={() => setScanning(true)}
-          className="flex w-full flex-col items-center gap-3 rounded-2xl bg-brand-500 p-8 text-white transition active:scale-[0.98]"
+          className="flex w-full flex-col items-center gap-3 rounded-2xl bg-brand p-8 text-on-brand transition active:scale-[0.98]"
         >
-          <span className="grid h-16 w-16 place-items-center rounded-full bg-white/20">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-on-brand/20">
             <Camera className="h-8 w-8" />
           </span>
           <span className="text-lg font-semibold">Escanear com a câmera</span>
         </button>
       )}
 
-      <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-stone-400">
-        <span className="h-px flex-1 bg-stone-200" /> ou digite o código manualmente <span className="h-px flex-1 bg-stone-200" />
+      <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-ink-3">
+        <span className="h-px flex-1 bg-surface" /> ou digite o código manualmente <span className="h-px flex-1 bg-surface" />
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); submit(typed) }} className="flex gap-2">
-        <label className="flex flex-1 items-center gap-2 rounded-xl bg-white px-4 py-3 ring-1 ring-stone-200 focus-within:ring-2 focus-within:ring-brand-400">
-          <Keyboard className="h-5 w-5 text-stone-400" />
+        <label className="flex flex-1 items-center gap-2 rounded-xl bg-card px-4 py-3 ring-1 ring-line focus-within:ring-2 focus-within:ring-brand">
+          <Keyboard className="h-5 w-5 text-ink-3" />
           <input
             value={typed}
             onChange={(e) => { setTyped(e.target.value); setError('') }}
             inputMode="numeric"
             placeholder="Ex.: 7894900011517"
             aria-label="Código de barras"
-            className="w-full bg-transparent font-semibold tracking-wider outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-stone-400"
+            className="w-full bg-transparent font-semibold tracking-wider outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-ink-3"
           />
         </label>
-        <button className="grid w-14 place-items-center rounded-xl bg-stone-800 text-white transition active:scale-95" aria-label="Buscar">
+        <button className="grid w-14 place-items-center rounded-xl bg-brand text-on-brand transition active:scale-95" aria-label="Buscar">
           <Search className="h-5 w-5" />
         </button>
       </form>
@@ -94,7 +94,7 @@ function FlowHeader({ title, onClose }: { title: string; onClose: () => void }) 
   return (
     <div className="flex items-center justify-between">
       <h1 className="text-2xl font-semibold">{title}</h1>
-      <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full bg-white ring-1 ring-stone-200" aria-label="Cancelar">
+      <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full bg-card ring-1 ring-line" aria-label="Cancelar">
         <X className="h-5 w-5" />
       </button>
     </div>
@@ -145,12 +145,12 @@ function ProductFlow({ code, stores, defaultStoreId, onDone }: { code: string; s
   return (
     <div className="animate-pop space-y-5">
       <FlowHeader title="Escanear produto" onClose={onDone} />
-      <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-6 text-center ring-1 ring-stone-200">
-        <span className="grid h-16 w-16 place-items-center rounded-full bg-amber-100 text-amber-600">
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-6 text-center ring-1 ring-line">
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-warning-bg text-warning">
           <PackageX className="h-8 w-8" />
         </span>
         <p className="text-xl font-semibold">Produto não encontrado</p>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-ink-2">
           {offline
             ? 'A base pública de produtos não respondeu agora. Tente de novo em instantes ou cadastre os dados.'
             : <>O código <span className="font-mono font-bold">{code}</span> não está no app nem na base pública de produtos.</>}
@@ -162,7 +162,7 @@ function ProductFlow({ code, stores, defaultStoreId, onDone }: { code: string; s
           <PackagePlus className="h-5 w-5" /> Cadastrar produto
         </PrimaryButton>
       ) : (
-        <p className="rounded-xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">
+        <p className="rounded-xl bg-warning-bg p-4 text-sm font-semibold text-warning">
           Peça a um gerente ou administrador para cadastrar este produto. Depois disso, você poderá registrar o lote.
         </p>
       )}
@@ -228,30 +228,30 @@ function ProductForm({ code, onCancel, onSaved }: { code: string; onCancel: () =
   return (
     <div className="animate-pop space-y-5">
       <FlowHeader title="Cadastrar produto" onClose={onCancel} />
-      <div className={`rounded-2xl p-4 ring-1 ${remote === 'found' ? 'bg-brand-50 ring-brand-100' : 'bg-amber-50 ring-amber-100'}`}>
+      <div className={`rounded-2xl p-4 ring-1 ${remote === 'found' ? 'bg-surface ring-line' : 'bg-warning-bg ring-warning/20'}`}>
         {remote === 'loading' && (
-          <p className="flex items-center gap-2 text-sm font-semibold text-stone-600">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink-2">
             <LoaderCircle className="h-4 w-4 shrink-0 animate-spin" /> Procurando sugestões na base pública de produtos…
           </p>
         )}
         {remote === 'found' && suggestion && (
           <div className="flex items-center gap-3">
-            {suggestion.imageUrl && <img src={suggestion.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain ring-1 ring-brand-100" />}
-            <p className="text-sm font-semibold text-brand-800">
+            {suggestion.imageUrl && <img src={suggestion.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-xl bg-card object-contain ring-1 ring-line" />}
+            <p className="text-sm font-semibold text-brand">
               Encontramos uma sugestão. Confira e corrija se precisar.
-              <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-brand-700">
+              <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-brand">
                 <Globe className="h-3 w-3" /> Fonte: {suggestion.source}
               </span>
             </p>
           </div>
         )}
-        {remote === 'notfound' && <p className="text-sm font-semibold text-amber-800">Não há sugestão para este código na base pública. Preencha os dados:</p>}
-        {remote === 'offline' && <p className="text-sm font-semibold text-amber-800">A base pública de produtos não respondeu. Preencha os dados:</p>}
+        {remote === 'notfound' && <p className="text-sm font-semibold text-warning">Não há sugestão para este código na base pública. Preencha os dados:</p>}
+        {remote === 'offline' && <p className="text-sm font-semibold text-warning">A base pública de produtos não respondeu. Preencha os dados:</p>}
       </div>
 
       <div className="space-y-4">
         <Field label="Código de barras">
-          <input className={`${inputCls} bg-stone-50 font-mono`} value={code} readOnly />
+          <input className={`${inputCls} bg-surface font-mono`} value={code} readOnly />
         </Field>
         <Field label="Nome do produto *">
           <input className={inputCls} value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="Ex.: Leite Integral 1L" maxLength={200} />
@@ -260,11 +260,11 @@ function ProductForm({ code, onCancel, onSaved }: { code: string; onCancel: () =
           <input className={inputCls} value={f.brand} onChange={(e) => set('brand', e.target.value)} placeholder="Opcional" maxLength={100} />
         </Field>
         <div className="space-y-1.5">
-          <span className="pl-1 text-sm font-bold text-stone-600">Setor *</span>
+          <span className="pl-1 text-sm font-bold text-ink-2">Setor *</span>
           <Chips options={CATEGORIES} value={f.category as (typeof CATEGORIES)[number] | null} onChange={(c) => set('category', c)} />
         </div>
         <div className="space-y-1.5">
-          <span className="pl-1 text-sm font-bold text-stone-600">Unidade de controle</span>
+          <span className="pl-1 text-sm font-bold text-ink-2">Unidade de controle</span>
           <Chips options={UNITS} value={f.unit as (typeof UNITS)[number]} onChange={(u) => set('unit', u)} />
         </div>
         <Field label="Preço de custo por unidade (R$)" hint="Opcional. Usado para calcular o valor das perdas." error={costInvalid ? 'Valor inválido' : undefined}>
@@ -334,18 +334,18 @@ function LotForm({
   return (
     <div className="animate-pop space-y-5">
       <FlowHeader title="Cadastrar lote" onClose={onDone} />
-      <div className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+      <div className="space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
         <div className="flex items-center gap-3">
           {product.imageUrl ? <ProductThumb product={product} size="lg" /> : <CategoryIcon category={product.category} size="lg" />}
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-stone-400">Produto</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-ink-3">Produto</p>
             <p className="text-lg font-semibold leading-tight">{product.name}</p>
-            <p className="text-sm text-stone-500">{product.brand ?? product.category}</p>
-            <p className="font-mono text-xs text-stone-400">Código: {product.barcode}</p>
+            <p className="text-sm text-ink-2">{product.brand ?? product.category}</p>
+            <p className="font-mono text-xs text-ink-3">Código: {product.barcode}</p>
           </div>
         </div>
         {suggestion && (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-800">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-xs font-semibold text-brand">
             <span className="flex items-center gap-1"><Globe className="h-3.5 w-3.5" /> Encontrado em {suggestion.source}</span>
             {onEditProduct && <button onClick={onEditProduct} className="font-semibold underline">Corrigir dados</button>}
           </div>
@@ -355,17 +355,17 @@ function LotForm({
       <div className="space-y-4">
         {suggestion || can('products:write') ? (
           <div className="space-y-1.5">
-            <span className="pl-1 text-sm font-bold text-stone-600">Setor *</span>
+            <span className="pl-1 text-sm font-bold text-ink-2">Setor *</span>
             <Chips options={CATEGORIES} value={category as (typeof CATEGORIES)[number] | null} onChange={(c) => setCategory(c)} />
           </div>
         ) : (
-          <p className="pl-1 text-sm font-bold text-stone-600">Setor: <span className="text-stone-800">{product.category}</span></p>
+          <p className="pl-1 text-sm font-bold text-ink-2">Setor: <span className="text-ink">{product.category}</span></p>
         )}
         {stores.length > 1 ? (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between pl-1">
-              <span className="text-sm font-bold text-stone-600">Lojas *</span>
-              <button type="button" onClick={() => setStoreIds(allSelected ? [] : stores.map((s) => s.id))} className="text-xs font-semibold text-brand-600">
+              <span className="text-sm font-bold text-ink-2">Lojas *</span>
+              <button type="button" onClick={() => setStoreIds(allSelected ? [] : stores.map((s) => s.id))} className="text-xs font-semibold text-brand">
                 {allSelected ? 'Limpar' : 'Selecionar todas'}
               </button>
             </div>
@@ -378,27 +378,27 @@ function LotForm({
                     type="button"
                     aria-pressed={on}
                     onClick={() => toggleStore(s.id)}
-                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold ring-1 transition active:scale-95 ${on ? 'bg-brand-500 text-white ring-brand-500' : 'bg-white text-stone-600 ring-stone-200'}`}
+                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold ring-1 transition active:scale-95 ${on ? 'bg-brand text-on-brand ring-brand' : 'bg-surface text-ink-2 ring-transparent'}`}
                   >
                     {on && <Check className="h-4 w-4" />} {s.name}
                   </button>
                 )
               })}
             </div>
-            <span className="block pl-1 text-xs text-stone-500">
+            <span className="block pl-1 text-xs text-ink-2">
               {storeIds.length > 1 ? `Será criado um lote em cada uma das ${storeIds.length} lojas, com a mesma quantidade e validade.` : 'Toque em mais lojas para cadastrar em todas de uma vez.'}
             </span>
           </div>
         ) : (
-          <p className="pl-1 text-sm font-bold text-stone-600">Loja: <span className="text-stone-800">{stores[0].name}</span></p>
+          <p className="pl-1 text-sm font-bold text-ink-2">Loja: <span className="text-ink">{stores[0].name}</span></p>
         )}
         <Field label={`Quantidade (${product.unit}) (opcional)`} hint={q === null ? 'Se deixar em branco, conta como 1.' : undefined}>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={() => step(-1)} className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white ring-1 ring-stone-200 active:scale-95" aria-label="Diminuir">
+            <button type="button" onClick={() => step(-1)} className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-card ring-1 ring-line active:scale-95" aria-label="Diminuir">
               <Minus className="h-5 w-5" />
             </button>
             <input inputMode="decimal" className={`${inputCls} text-center text-lg`} value={quantity} placeholder="1" onChange={(e) => setQuantity(e.target.value)} />
-            <button type="button" onClick={() => step(1)} className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white ring-1 ring-stone-200 active:scale-95" aria-label="Aumentar">
+            <button type="button" onClick={() => step(1)} className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-card ring-1 ring-line active:scale-95" aria-label="Aumentar">
               <Plus className="h-5 w-5" />
             </button>
           </div>
@@ -420,8 +420,8 @@ function LotForm({
 
       {lots.length > 0 && (
         <section className="space-y-2.5">
-          <h2 className="font-semibold text-stone-700">Lotes ativos deste produto</h2>
-          <p className="text-xs text-stone-500">Em ordem de saída: o primeiro da lista vence antes.</p>
+          <h2 className="font-semibold text-ink">Lotes ativos deste produto</h2>
+          <p className="text-xs text-ink-2">Em ordem de saída: o primeiro da lista vence antes.</p>
           {lots.map((l) => <LotCard key={l.id} lot={l} onOpen={() => openLot(l.id)} />)}
         </section>
       )}

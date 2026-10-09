@@ -208,6 +208,31 @@ export async function lotRoutes(app: FastifyInstance) {
     return { lot: await lotById(ctx, id) }
   })
 
+  // Marks a lot as being sold at a discount before it expires (or ends the promotion). Quantities are untouched;
+  // the sale itself is registered later as a withdrawal with reason "sold".
+  app.post('/api/lots/:id/promotion', async (req) => {
+    const ctx = req.auth
+    requirePermission(ctx, 'lots:withdraw')
+    const { id } = parse(idParam, req.params)
+    const data = parse(
+      z.object({
+        active: z.boolean().default(true),
+        discount: z.coerce.number().int('Use um número inteiro.').min(1, 'O desconto vai de 1% a 90%.').max(90, 'O desconto vai de 1% a 90%.').nullish(),
+      }),
+      req.body,
+    )
+    await db.transaction(async (tx) => {
+      const { lot } = await lockLot(tx, ctx, id)
+      if (lot.status !== 'active') throw conflict('Este lote não está mais ativo.')
+      await tx
+        .update(lots)
+        .set(data.active ? { promoSince: lot.promoSince ?? new Date(), promoDiscount: data.discount ?? null } : { promoSince: null, promoDiscount: null })
+        .where(eq(lots.id, lot.id))
+      await audit(req, data.active ? 'lot_promotion' : 'lot_promotion_end', 'lot', lot.id, { discount: data.discount ?? null }, tx)
+    })
+    return { lot: await lotById(ctx, id) }
+  })
+
   // Administrative archive (soft delete), e.g. for a lot registered by mistake. History is preserved.
   app.post('/api/lots/:id/archive', async (req) => {
     const ctx = req.auth

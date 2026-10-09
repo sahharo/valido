@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Download, PackageMinus, ShieldAlert, TrendingDown } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { BarChart3, CalendarDays, Download, PackageMinus, ShieldAlert } from 'lucide-react'
 import { LOSS_REASONS, REASON_LABEL } from '../../shared/domain.ts'
-import { Chips, ErrorBox, Field, inputCls, Loading } from '../components/ui.tsx'
+import { ErrorBox, Field, inputCls, Loading } from '../components/ui.tsx'
 import { useOpenLot } from '../lotSheet.ts'
 import { storeParam, useApi } from '../queries.ts'
 import type { ReportData } from '../types.ts'
@@ -10,6 +10,15 @@ import { downloadCsv, formatDate, formatDateTime, formatMoney, formatQty, isoInD
 const PERIODS = ['month', '30', '90', 'custom'] as const
 type PeriodId = (typeof PERIODS)[number]
 const PERIOD_LABEL: Record<PeriodId, string> = { month: 'Este mês', '30': '30 dias', '90': '90 dias', custom: 'Personalizado' }
+const SHORT_MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+
+function periodText(p: PeriodId, r: { from: string; to: string }) {
+  if (p === 'month') return `em ${new Date(`${r.from}T12:00:00`).toLocaleDateString('pt-BR', { month: 'long' })}`
+  if (p === 'custom') return `de ${formatDate(r.from)} a ${formatDate(r.to)}`
+  return `nos últimos ${p} dias`
+}
+
+const daysUntil = (iso: string) => Math.round((Date.parse(iso) - Date.parse(isoInDays(0))) / 86_400_000)
 
 function range(p: PeriodId, from: string, to: string) {
   const today = isoInDays(0)
@@ -24,7 +33,7 @@ function range(p: PeriodId, from: string, to: string) {
 }
 
 // Losses, validity and withdrawal history for the selected period and store.
-export function ReportsView({ storeId }: { storeId: number | 'all' }) {
+export function ReportsView({ storeId, storeChip, onAddCost }: { storeId: number | 'all'; storeChip: ReactNode; onAddCost: () => void }) {
   const openLot = useOpenLot()
   const [period, setPeriod] = useState<PeriodId>('month')
   const [from, setFrom] = useState('')
@@ -46,8 +55,24 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-semibold">Relatórios</h1>
-      <Chips options={PERIODS} value={period} onChange={setPeriod} labels={PERIOD_LABEL} />
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold">Relatórios</h1>
+        {storeChip}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {PERIODS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            aria-pressed={period === p}
+            aria-label={p === 'custom' ? PERIOD_LABEL.custom : undefined}
+            onClick={() => setPeriod(p)}
+            className={`flex items-center rounded-full px-3.5 py-2 text-sm font-bold transition ${period === p ? 'bg-brand text-on-brand' : 'bg-surface text-ink-2'}`}
+          >
+            {p === 'custom' ? <CalendarDays className="h-4 w-4" /> : PERIOD_LABEL[p]}
+          </button>
+        ))}
+      </div>
       {period === 'custom' && (
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-3">
@@ -58,30 +83,67 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
               <input type="date" className={inputCls} value={to || r.to} onChange={(e) => setTo(e.target.value)} />
             </Field>
           </div>
-          <p className="pl-1 text-xs text-stone-500">Mostrando de {formatDate(r.from)} a {formatDate(r.to)}</p>
+          <p className="pl-1 text-xs text-ink-2">Mostrando de {formatDate(r.from)} a {formatDate(r.to)}</p>
         </div>
       )}
 
       {error ? <ErrorBox error={error} onRetry={refetch} /> : !data ? <Loading /> : (
         <>
-          <div className="rounded-2xl bg-rose-500 p-5 text-white">
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-white/90"><TrendingDown className="h-4 w-4" /> Perda estimada no período</p>
-            <p className="mt-1 text-3xl font-semibold">{formatMoney(data.losses.total.value)}</p>
-            <p className="mt-1 text-sm text-white/90">
-              {formatQty(data.losses.total.quantity, 'un')} perdidas em {data.losses.total.count ?? 0} retiradas · {formatDate(data.period.from)} a {formatDate(data.period.to)}
-            </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-card p-4 ring-1 ring-line">
+              <p className="text-xs font-bold text-ink-2">Perdas</p>
+              <p className={`mt-1 text-xl font-extrabold ${data.losses.total.value > 0 ? 'text-danger' : data.losses.total.quantity > 0 ? 'text-ink' : 'text-ink-3'}`}>
+                {formatMoney(data.losses.total.value)}
+              </p>
+              <p className="mt-0.5 text-xs text-ink-2">
+                {data.losses.total.quantity > 0
+                  ? `${formatQty(data.losses.total.quantity, 'un')} em ${data.losses.total.count === 1 ? '1 retirada' : `${data.losses.total.count ?? 0} retiradas`}`
+                  : `Nenhuma perda ${periodText(period, r)}`}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-card p-4 ring-1 ring-line">
+              <p className="text-xs font-bold text-ink-2">Perdas evitadas</p>
+              {data.hasCosts ? (
+                <>
+                  <p className={`mt-1 text-xl font-extrabold ${data.avoided.value > 0 ? 'text-ink' : 'text-ink-3'}`}>{formatMoney(data.avoided.value)}</p>
+                  <p className="mt-0.5 text-xs text-ink-2">
+                    {data.avoided.quantity > 0 ? `${formatQty(data.avoided.quantity, 'un')} vendidas em promoção ou devolvidas antes de vencer` : 'Vendas em promoção e devoluções antes de vencer'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-1 text-xl font-extrabold text-ink-3">R$ —</p>
+                  <button onClick={onAddCost} className="mt-0.5 text-left text-xs font-bold text-brand underline underline-offset-2">Adicionar preço de custo</button>
+                </>
+              )}
+            </div>
           </div>
           {data.losses.total.quantity > 0 && data.losses.total.value === 0 && (
-            <p className="rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-800">
+            <p className="rounded-xl bg-surface p-3 text-sm font-semibold text-ink-2">
               Cadastre o preço de custo dos produtos para ver o valor em reais das perdas.
             </p>
           )}
 
-          <Section title="Maior risco de perda nos próximos 7 dias" icon={ShieldAlert}>
-            {data.atRisk.length === 0 ? <Empty text="Nenhum produto vencendo nos próximos 7 dias." /> : data.atRisk.map((p) => (
-              <Row key={p.productId} title={p.name} sub={`${p.lots} ${p.lots === 1 ? 'lote' : 'lotes'} · ${formatQty(p.quantity, p.unit)} · vence ${formatDate(p.nextExpiry)}`} value={p.value ? formatMoney(p.value) : '—'} />
-            ))}
+          <Section title="Em risco nos próximos 7 dias" icon={ShieldAlert}>
+            {data.atRisk.length === 0 ? <Empty text="Nenhum produto vencendo nos próximos 7 dias." /> : data.atRisk.map((p) => {
+              const d = daysUntil(p.nextExpiry)
+              return (
+                <div key={p.productId} className="flex items-center gap-3 px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold">{p.name}</p>
+                    <p className="truncate text-xs text-ink-2">
+                      {p.stores} · {p.lots} {p.lots === 1 ? 'lote' : 'lotes'} · {formatQty(p.quantity, p.unit)} · {formatDate(p.nextExpiry)}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold ${d < 0 ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning'}`}>
+                    {d < 0 ? 'Vencido' : d === 0 ? 'Hoje' : d === 1 ? '1 dia' : `${d} dias`}
+                  </span>
+                </div>
+              )
+            })}
           </Section>
+
+          <MonthlyChart rows={data.monthly} />
 
           <Bars title="Perdas por motivo" rows={data.losses.byReason.map((x) => ({ key: x.reason, label: REASON_LABEL[x.reason] + (LOSS_REASONS.includes(x.reason) ? '' : ' (não é perda)'), value: x.value, qty: x.quantity }))} />
           <Bars title="Setores com maior perda" rows={data.losses.byCategory.map((x) => ({ key: x.category, label: x.category, value: x.value, qty: x.quantity }))} />
@@ -95,19 +157,19 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
           </Section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-semibold">Validade agora</h2>
-            <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200">
+            <h2 className="text-lg font-extrabold">Validade agora, por loja</h2>
+            <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-line">
               <table className="w-full text-sm">
-                <thead className="bg-stone-50 text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+                <thead className="bg-surface text-[11px] font-semibold uppercase tracking-wide text-ink-3">
                   <tr><th className="px-3 py-2 text-left">Loja</th><th className="px-2">Vencidos</th><th className="px-2">7 dias</th><th className="px-2">30 dias</th></tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100 text-center font-bold">
+                <tbody className="divide-y divide-line text-center font-bold">
                   {data.validity.byStore.map((s) => (
                     <tr key={s.storeId}>
                       <td className="px-3 py-2.5 text-left">{s.name}</td>
-                      <td className={s.expired ? 'text-rose-600' : 'text-stone-400'}>{s.expired}</td>
-                      <td className={s.week ? 'text-orange-600' : 'text-stone-400'}>{s.week}</td>
-                      <td className={s.month ? 'text-yellow-700' : 'text-stone-400'}>{s.month}</td>
+                      <td className={s.expired ? 'text-danger' : 'text-ink-3'}>{s.expired}</td>
+                      <td className={s.week ? 'text-warning' : 'text-ink-3'}>{s.week}</td>
+                      <td className={s.month ? 'text-warning' : 'text-ink-3'}>{s.month}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -117,25 +179,29 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
 
           <section className="space-y-2">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Histórico de retiradas</h2>
+              <h2 className="text-lg font-extrabold">Histórico de retiradas</h2>
               {data.history.length > 0 && (
-                <button onClick={exportHistory} className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-stone-600 ring-1 ring-stone-200">
+                <button onClick={exportHistory} className="flex items-center gap-1 rounded-full bg-card px-3 py-1.5 text-sm font-bold text-ink-2 ring-1 ring-line">
                   <Download className="h-4 w-4" /> Planilha
                 </button>
               )}
             </div>
-            {data.history.length === 0 ? <Empty text="Nenhuma retirada no período." /> : (
+            {data.history.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-ink-3/50 p-5 text-center text-sm text-ink-2">
+                Nenhuma retirada ainda — quando você retirar um produto, ele aparece aqui com o motivo.
+              </p>
+            ) : (
               <div className="space-y-2">
                 {data.history.map((h) => (
-                  <button key={h.id} onClick={() => openLot(h.lotId)} className="block w-full rounded-xl bg-white p-3 text-left text-sm ring-1 ring-stone-200">
+                  <button key={h.id} onClick={() => openLot(h.lotId)} className="block w-full rounded-xl bg-card p-3 text-left text-sm ring-1 ring-line">
                     <div className="flex justify-between gap-2">
                       <p className="truncate font-bold">{h.product}</p>
-                      {h.totalCost != null && <p className={`shrink-0 font-semibold ${LOSS_REASONS.includes(h.reason) ? 'text-rose-600' : 'text-stone-500'}`}>{formatMoney(h.totalCost)}</p>}
+                      {h.totalCost != null && <p className={`shrink-0 font-semibold ${LOSS_REASONS.includes(h.reason) ? 'text-danger' : 'text-ink-2'}`}>{formatMoney(h.totalCost)}</p>}
                     </div>
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-ink-2">
                       {formatQty(h.quantity, h.unit)} · {REASON_LABEL[h.reason]} · {h.store}{h.lotNumber && ` · Lote ${h.lotNumber}`}
                     </p>
-                    <p className="text-xs text-stone-400">{h.user} · {formatDateTime(h.createdAt)}</p>
+                    <p className="text-xs text-ink-3">{h.user} · {formatDateTime(h.createdAt)}</p>
                   </button>
                 ))}
               </div>
@@ -150,8 +216,35 @@ export function ReportsView({ storeId }: { storeId: number | 'all' }) {
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof ShieldAlert; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="flex items-center gap-2 text-lg font-semibold"><Icon className="h-5 w-5 text-stone-400" /> {title}</h2>
-      <div className="divide-y divide-stone-100 overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200">{children}</div>
+      <h2 className="flex items-center gap-2 text-lg font-extrabold"><Icon className="h-5 w-5 text-ink-3" /> {title}</h2>
+      <div className="divide-y divide-line overflow-hidden rounded-2xl bg-card ring-1 ring-line">{children}</div>
+    </section>
+  )
+}
+
+function MonthlyChart({ rows }: { rows: ReportData['monthly'] }) {
+  const byValue = rows.some((r) => r.value > 0)
+  const v = (r: ReportData['monthly'][number]) => (byValue ? r.value : r.quantity)
+  const max = Math.max(...rows.map(v), 0)
+  return (
+    <section className="space-y-2">
+      <h2 className="flex items-center gap-2 text-lg font-extrabold"><BarChart3 className="h-5 w-5 text-ink-3" /> Perdas por mês</h2>
+      <div className="rounded-2xl bg-card p-4 ring-1 ring-line">
+        <div className="flex h-32 items-end gap-2">
+          {rows.map((r) => (
+            <div key={r.month} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+              <span className={`text-[10px] font-bold ${v(r) > 0 ? 'text-ink-2' : 'text-ink-3'}`}>
+                {v(r) > 0 ? (byValue ? formatMoney(r.value).replace(/,\d{2}$/, '') : formatQty(r.quantity, 'un')) : ''}
+              </span>
+              <div className="flex w-full flex-1 items-end overflow-hidden rounded-lg bg-surface">
+                <div className="w-full rounded-lg bg-brand" style={{ height: max > 0 ? `${(v(r) / max) * 100}%` : 0 }} />
+              </div>
+              <span className="text-[11px] font-semibold text-ink-3">{SHORT_MONTHS[Number(r.month.slice(5, 7)) - 1]}</span>
+            </div>
+          ))}
+        </div>
+        {max === 0 && <p className="mt-3 text-center text-sm text-ink-2">O gráfico ganha forma a partir do primeiro mês de uso.</p>}
+      </div>
     </section>
   )
 }
@@ -161,14 +254,14 @@ function Row({ title, sub, value }: { title: string; sub: string; value: string 
     <div className="flex items-center gap-3 px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="truncate font-bold">{title}</p>
-        <p className="truncate text-xs text-stone-500">{sub}</p>
+        <p className="truncate text-xs text-ink-2">{sub}</p>
       </div>
       <p className="shrink-0 font-semibold">{value}</p>
     </div>
   )
 }
 
-const Empty = ({ text }: { text: string }) => <p className="px-4 py-5 text-center text-sm text-stone-500">{text}</p>
+const Empty = ({ text }: { text: string }) => <p className="px-4 py-5 text-center text-sm text-ink-2">{text}</p>
 
 function Bars({ title, rows }: { title: string; rows: { key: string; label: string; value: number; qty: number }[] }) {
   if (!rows.length) return null
@@ -176,16 +269,16 @@ function Bars({ title, rows }: { title: string; rows: { key: string; label: stri
   const max = Math.max(...rows.map((r) => (byValue ? r.value : r.qty)), 1)
   return (
     <section className="space-y-2">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-stone-200">
+      <h2 className="text-lg font-extrabold">{title}</h2>
+      <div className="space-y-3 rounded-2xl bg-card p-4 ring-1 ring-line">
         {rows.map((r) => (
           <div key={r.key}>
             <div className="flex justify-between gap-2 text-sm">
               <span className="truncate font-semibold">{r.label}</span>
               <span className="shrink-0 font-semibold">{byValue ? formatMoney(r.value) : formatQty(r.qty, 'un')}</span>
             </div>
-            <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-stone-100">
-              <div className="h-full rounded-full bg-rose-400" style={{ width: `${((byValue ? r.value : r.qty) / max) * 100}%` }} />
+            <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-surface">
+              <div className="h-full rounded-full bg-brand" style={{ width: `${((byValue ? r.value : r.qty) / max) * 100}%` }} />
             </div>
           </div>
         ))}

@@ -126,6 +126,9 @@ export const lots = pgTable('lots', {
   withdrawalReason: withdrawalReasonEnum('withdrawal_reason'),
   archivedAt: timestamp('archived_at', { withTimezone: true }),
   archivedBy: integer('archived_by').references(() => users.id),
+  // Set while the lot is marked down to sell before expiring; cleared when the promotion ends.
+  promoSince: timestamp('promo_since', { withTimezone: true }),
+  promoDiscount: integer('promo_discount'),
 }, (t) => [
   index('lots_active_expiry_idx').on(t.companyId, t.status, t.expiryDate),
   index('lots_product_idx').on(t.productId),

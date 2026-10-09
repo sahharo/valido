@@ -28,6 +28,8 @@ export const lotView = {
   createdAt: lots.createdAt,
   withdrawnAt: lots.withdrawnAt,
   withdrawalReason: lots.withdrawalReason,
+  promoSince: lots.promoSince,
+  promoDiscount: lots.promoDiscount,
   daysLeft,
   product: {
     id: products.id,

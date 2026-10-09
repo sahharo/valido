@@ -13,7 +13,7 @@ function apply() {
   const choice = getTheme()
   const dark = choice === 'dark' || (choice === 'system' && media.matches)
   document.documentElement.classList.toggle('dark', dark)
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#1c1917' : '#f3f0e8')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0e1420' : '#f3f1ec')
 }
 
 export function setTheme(choice: ThemeChoice) {
