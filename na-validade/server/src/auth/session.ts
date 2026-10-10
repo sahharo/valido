@@ -7,7 +7,7 @@ export const SESSION_COOKIE = 'nv_session'
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const RENEW_BEFORE_MS = 15 * 24 * 60 * 60 * 1000
 
-const hashToken = (token: string) => createHash('sha256').update(token).digest('hex')
+export const hashToken = (token: string) => createHash('sha256').update(token).digest('hex')
 
 export async function createSession(userId: number, userAgent?: string) {
   const token = randomBytes(32).toString('base64url')

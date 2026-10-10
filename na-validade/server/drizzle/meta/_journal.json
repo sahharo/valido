@@ -43,6 +43,13 @@
       "when": 1791572493535,
       "tag": "0005_lot_promotion",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791573498017,
+      "tag": "0006_password_resets",
+      "breakpoints": true
     }
   ]
 }

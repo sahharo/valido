@@ -16,3 +16,7 @@ services:
         value: "true"
       - key: APP_TIMEZONE
         value: America/Sao_Paulo
+      - key: BREVO_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false

@@ -72,6 +72,16 @@ export const sessions = pgTable('sessions', {
   userAgent: text('user_agent'),
 }, (t) => [index('sessions_user_idx').on(t.userId)])
 
+// One-time "esqueci a senha" links. Only the SHA-256 of the token is stored; links expire and are single use.
+export const passwordResets = pgTable('password_resets', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [index('password_resets_user_idx').on(t.userId)])
+
 // Product catalog of a company. A product is shared by all its stores; lots carry store, quantity and expiry.
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),

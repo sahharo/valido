@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { db, pool } from '../src/db/client.ts'
+import { sentMails } from '../src/lib/mail.ts'
 import { Client, cnpj, isoInDays, owner, person, setup, storeData } from './helpers.ts'
 
 let app: FastifyInstance
@@ -342,5 +343,32 @@ describe('cadastro rápido de lotes', () => {
     const res = await employee.post('/api/lots', { productId: product.id, storeIds: [storeA, storeB], quantity: 2, expiryDate: isoInDays(30) })
     expect(res.status).toBe(403)
     expect((await admin.get(`/api/lots?productId=${product.id}`)).body.total).toBe(before)
+  })
+})
+
+describe('esqueci a senha', () => {
+  it('não revela se o e-mail existe', async () => {
+    const before = sentMails.length
+    const res = await new Client(app).post('/api/auth/forgot', { email: 'ninguem@exemplo.com.br' })
+    expect(res.status).toBe(200)
+    expect(sentMails.length).toBe(before)
+  })
+
+  it('o link troca a senha uma única vez e encerra as sessões abertas', async () => {
+    const c = new Client(app)
+    const p = owner()
+    expect((await c.post('/api/auth/signup', { ...p, acceptTerms: true })).status).toBe(201)
+    expect((await new Client(app).post('/api/auth/forgot', { email: p.email })).status).toBe(200)
+    const mail = sentMails.at(-1)!
+    expect(mail.to).toBe(p.email)
+    const token = mail.text.match(/redefinir=([\w-]+)/)![1]
+
+    const anon = new Client(app)
+    expect((await anon.post('/api/auth/reset', { token, password: 'fraca' })).status).toBe(400)
+    expect((await anon.post('/api/auth/reset', { token, password: 'Nova-senha-456' })).status).toBe(200)
+    expect((await c.get('/api/auth/me')).status).toBe(401)
+    expect((await anon.post('/api/auth/login', { identifier: p.email, password: p.password })).status).toBe(401)
+    expect((await anon.post('/api/auth/login', { identifier: p.email, password: 'Nova-senha-456' })).status).toBe(200)
+    expect((await anon.post('/api/auth/reset', { token, password: 'Outra-senha-789' })).status).toBe(400)
   })
 })

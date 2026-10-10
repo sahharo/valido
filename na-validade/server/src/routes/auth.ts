@@ -1,4 +1,5 @@
-import { and, eq, ne, or } from 'drizzle-orm'
+import { randomBytes } from 'node:crypto'
+import { and, eq, gt, isNull, ne, or } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply } from 'fastify'
 import { z } from 'zod'
 import { JOB_TITLES } from '../../../shared/domain.ts'
@@ -6,12 +7,13 @@ import { isStrongPassword, isValidCPF, isValidEmail, isValidPhone, onlyDigits, P
 import type { AuthContext } from '../auth/context.ts'
 import { loadContext } from '../auth/context.ts'
 import { hashPassword, verifyPassword } from '../auth/password.ts'
-import { createSession, destroySession, destroyUserSessions, SESSION_COOKIE, SESSION_TTL_MS } from '../auth/session.ts'
+import { createSession, destroySession, destroyUserSessions, hashToken, SESSION_COOKIE, SESSION_TTL_MS } from '../auth/session.ts'
 import { db } from '../db/client.ts'
-import { companies, users } from '../db/schema.ts'
+import { companies, passwordResets, users } from '../db/schema.ts'
 import { env } from '../env.ts'
 import { audit } from '../lib/audit.ts'
 import { badRequest, conflict, HttpError, parse } from '../lib/http.ts'
+import { sendMail } from '../lib/mail.ts'
 
 export const personFields = {
   firstName: z.string().trim().min(2, 'Informe o nome.').max(60),
@@ -91,6 +93,22 @@ function setSessionCookie(reply: FastifyReply, token: string) {
 }
 
 const authLimit = { rateLimit: { max: env.isTest ? 1000 : 10, timeWindow: '1 minute' } }
+const forgotLimit = { rateLimit: { max: env.isTest ? 1000 : 5, timeWindow: '15 minutes' } }
+const RESET_TTL_MS = 60 * 60 * 1000
+const resetLinkInvalid = 'Este link expirou ou já foi usado. Peça um novo em "Esqueci a senha".'
+
+const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+
+function resetMail(firstName: string, link: string) {
+  const text = `Olá, ${firstName}!\n\nRecebemos um pedido para criar uma nova senha no Validei. Abra o link abaixo (vale por 1 hora):\n${link}\n\nSe não foi você, ignore este e-mail: sua senha continua a mesma.`
+  const html = `<div style="font-family:Arial,sans-serif;color:#172B4D;max-width:480px">
+<p>Olá, ${escapeHtml(firstName)}!</p>
+<p>Recebemos um pedido para criar uma nova senha no <b>Validei</b>.</p>
+<p><a href="${link}" style="display:inline-block;background:#172B4D;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:bold">Criar nova senha</a></p>
+<p style="color:#5B6B85;font-size:14px">O link vale por 1 hora. Se não foi você, ignore este e-mail: sua senha continua a mesma.</p>
+</div>`
+  return { text, html }
+}
 
 export async function authPublicRoutes(app: FastifyInstance) {
   app.post('/api/auth/signup', { config: authLimit }, async (req, reply) => {
@@ -133,6 +151,46 @@ export async function authPublicRoutes(app: FastifyInstance) {
     await audit(req, 'login', 'user', user.id, undefined, db, { companyId: user.companyId, userId: user.id })
     setSessionCookie(reply, await createSession(user.id, req.headers['user-agent']))
     return serializeMe((await loadContext(user.id))!)
+  })
+
+  // Always answers the same way, so nobody can find out which e-mails have an account.
+  app.post('/api/auth/forgot', { config: forgotLimit }, async (req) => {
+    const { email } = parse(z.object({ email: personFields.email }), req.body)
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    if (user?.active) {
+      const token = randomBytes(32).toString('base64url')
+      await db.transaction(async (tx) => {
+        await tx.delete(passwordResets).where(and(eq(passwordResets.userId, user.id), isNull(passwordResets.usedAt)))
+        await tx.insert(passwordResets).values({ userId: user.id, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + RESET_TTL_MS) })
+        await audit(req, 'password_reset_request', 'user', user.id, undefined, tx, { companyId: user.companyId, userId: user.id })
+      })
+      const { text, html } = resetMail(user.firstName, `${env.appUrl}/?redefinir=${token}`)
+      try {
+        await sendMail({ to: user.email, toName: `${user.firstName} ${user.lastName}`, subject: 'Validei: criar nova senha', text, html })
+      } catch (err) {
+        req.log.error(err, 'password reset e-mail failed')
+      }
+    }
+    return { ok: true }
+  })
+
+  app.post('/api/auth/reset', { config: authLimit }, async (req) => {
+    const { token, password } = parse(z.object({ token: z.string().min(20, resetLinkInvalid).max(200), password: passwordField }), req.body)
+    await db.transaction(async (tx) => {
+      const [reset] = await tx
+        .select()
+        .from(passwordResets)
+        .where(and(eq(passwordResets.tokenHash, hashToken(token)), isNull(passwordResets.usedAt), gt(passwordResets.expiresAt, new Date())))
+        .for('update')
+      const [user] = reset ? await tx.select().from(users).where(eq(users.id, reset.userId)) : []
+      if (!reset || !user?.active) throw badRequest(resetLinkInvalid)
+      await tx.update(users).set({ passwordHash: await hashPassword(password) }).where(eq(users.id, user.id))
+      await tx.update(passwordResets).set({ usedAt: new Date() }).where(eq(passwordResets.id, reset.id))
+      await audit(req, 'password_reset', 'user', user.id, undefined, tx, { companyId: user.companyId, userId: user.id })
+    })
+    const [reset] = await db.select({ userId: passwordResets.userId }).from(passwordResets).where(eq(passwordResets.tokenHash, hashToken(token)))
+    await destroyUserSessions(reset.userId)
+    return { ok: true }
   })
 
   app.post('/api/auth/logout', async (req, reply) => {

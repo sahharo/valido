@@ -1,14 +1,26 @@
 import { useState, type FormEvent } from 'react'
-import { AtSign, KeyRound } from 'lucide-react'
+import { ArrowLeft, AtSign, KeyRound, MailCheck } from 'lucide-react'
 import { post } from '../api.ts'
 import type { Me } from '../types.ts'
 import { JOB_TITLES } from '../../shared/domain.ts'
 import { Chips, Field, inputCls, PasswordInput, PasswordRules, PrimaryButton } from '../components/ui.tsx'
 import { isStrongPassword, isValidEmail, suggestEmail, isValidPhone, maskPhone } from '../../shared/validation.ts'
 
-// Welcome screen with "Entrar" (login) and "Criar conta" (sign-up) tabs.
+type Mode = 'login' | 'signup' | 'forgot' | 'reset'
+
+// Token from the "esqueci a senha" e-mail link (/?redefinir=...).
+const resetToken = () => new URLSearchParams(window.location.search).get('redefinir')
+
+// Welcome screen with "Entrar" (login) and "Criar conta" (sign-up) tabs, plus the password recovery steps.
 export function AuthView({ onAuth }: { onAuth: (me: Me) => void }) {
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [mode, setMode] = useState<Mode>(() => (resetToken() ? 'reset' : 'login'))
+  const [notice, setNotice] = useState('')
+
+  function backToLogin(message = '') {
+    if (resetToken()) window.history.replaceState(null, '', '/')
+    setNotice(message)
+    setMode('login')
+  }
 
   return (
     <div className="mx-auto min-h-screen max-w-lg px-4 pb-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
@@ -19,7 +31,7 @@ export function AuthView({ onAuth }: { onAuth: (me: Me) => void }) {
       </div>
 
       <div className="rounded-2xl bg-card/80 p-5 ring-1 ring-line backdrop-blur">
-        <div className="mb-5 grid grid-cols-2 rounded-xl bg-surface p-1">
+        {(mode === 'login' || mode === 'signup') && <div className="mb-5 grid grid-cols-2 rounded-xl bg-surface p-1">
           {(['login', 'signup'] as const).map((m) => (
             <button
               key={m}
@@ -29,16 +41,19 @@ export function AuthView({ onAuth }: { onAuth: (me: Me) => void }) {
               {m === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
           ))}
-        </div>
+        </div>}
         <div key={mode} className="animate-pop">
-          {mode === 'login' ? <LoginForm onAuth={onAuth} onSignup={() => setMode('signup')} /> : <SignupForm onAuth={onAuth} />}
+          {mode === 'login' && <LoginForm onAuth={onAuth} onSignup={() => setMode('signup')} onForgot={() => setMode('forgot')} notice={notice} />}
+          {mode === 'signup' && <SignupForm onAuth={onAuth} />}
+          {mode === 'forgot' && <ForgotForm onBack={() => backToLogin()} />}
+          {mode === 'reset' && <ResetForm token={resetToken() ?? ''} onDone={backToLogin} />}
         </div>
       </div>
     </div>
   )
 }
 
-function LoginForm({ onAuth, onSignup }: { onAuth: (me: Me) => void; onSignup: () => void }) {
+function LoginForm({ onAuth, onSignup, onForgot, notice }: { onAuth: (me: Me) => void; onSignup: () => void; onForgot: () => void; notice: string }) {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -59,6 +74,7 @@ function LoginForm({ onAuth, onSignup }: { onAuth: (me: Me) => void; onSignup: (
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      {notice && <p className="rounded-xl bg-surface p-3 text-sm font-bold text-ink">{notice}</p>}
       {/* Everyone (owner and team) logs in with e-mail. */}
       <Field label="E-mail">
         <div className="relative">
@@ -78,6 +94,9 @@ function LoginForm({ onAuth, onSignup }: { onAuth: (me: Me) => void; onSignup: (
       <Field label="Senha">
         <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sua senha" autoComplete="current-password" />
       </Field>
+      <div className="-mt-2 text-right">
+        <button type="button" onClick={onForgot} className="text-sm font-bold text-ink-2 underline-offset-2 hover:underline">Esqueci a senha</button>
+      </div>
       {error && <p className="rounded-xl bg-danger-bg p-3 text-sm font-bold text-danger">{error}</p>}
       <PrimaryButton loading={loading} disabled={!identifier || !password}>
         <KeyRound className="h-5 w-5" /> Entrar
@@ -179,6 +198,122 @@ function SignupForm({ onAuth }: { onAuth: (me: Me) => void }) {
       </label>
       {error && <p className="rounded-xl bg-danger-bg p-3 text-sm font-bold text-danger">{error}</p>}
       <PrimaryButton loading={loading}>Continuar</PrimaryButton>
+    </form>
+  )
+}
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="flex items-center gap-1 text-sm font-bold text-ink-2">
+      <ArrowLeft className="h-4 w-4" /> Voltar para entrar
+    </button>
+  )
+}
+
+// Asks for the e-mail and sends the link. The answer is the same whether the account exists or not.
+function ForgotForm({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    if (!isValidEmail(email)) return setError('Digite um e-mail válido.')
+    setError('')
+    setLoading(true)
+    try {
+      await post('/api/auth/forgot', { email })
+      setSent(true)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (sent)
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-surface text-brand"><MailCheck className="h-7 w-7" /></span>
+          <h2 className="text-lg font-bold text-ink">Confira o seu e-mail</h2>
+          <p className="text-sm text-ink-2">
+            Se existir uma conta com <b className="text-ink">{email}</b>, enviamos um link para criar uma nova senha. Ele vale por 1 hora.
+          </p>
+          <p className="text-xs text-ink-3">Não chegou? Olhe a caixa de spam ou peça de novo em alguns minutos.</p>
+        </div>
+        <BackButton onClick={onBack} />
+      </div>
+    )
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-ink">Esqueci a senha</h2>
+        <p className="text-sm text-ink-2">Digite o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.</p>
+      </div>
+      <Field label="E-mail">
+        <div className="relative">
+          <AtSign className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-3" />
+          <input
+            className={`${inputCls} pl-12`}
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value.trim())}
+            placeholder="voce@email.com"
+            autoComplete="username"
+            autoCapitalize="none"
+          />
+        </div>
+      </Field>
+      {error && <p className="rounded-xl bg-danger-bg p-3 text-sm font-bold text-danger">{error}</p>}
+      <PrimaryButton loading={loading} disabled={!email}>Enviar link</PrimaryButton>
+      <BackButton onClick={onBack} />
+    </form>
+  )
+}
+
+// Opened from the e-mail link: sets the new password, then goes back to login.
+function ResetForm({ token, onDone }: { token: string; onDone: (message?: string) => void }) {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    if (!isStrongPassword(password)) return setError('A senha ainda não cumpre todos os requisitos.')
+    if (password !== confirm) return setError('As senhas não são iguais.')
+    setError('')
+    setLoading(true)
+    try {
+      await post('/api/auth/reset', { token, password })
+      onDone('Senha alterada. Entre com a nova senha.')
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-ink">Criar nova senha</h2>
+        <p className="text-sm text-ink-2">Por segurança, você vai sair do app em todos os aparelhos.</p>
+      </div>
+      <Field label="Nova senha">
+        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="Mínimo de 8 caracteres" />
+      </Field>
+      <PasswordRules value={password} />
+      <Field label="Confirmar nova senha">
+        <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" placeholder="Repita a senha" />
+      </Field>
+      {error && <p className="rounded-xl bg-danger-bg p-3 text-sm font-bold text-danger">{error}</p>}
+      <PrimaryButton loading={loading} disabled={!password || !confirm}>Salvar nova senha</PrimaryButton>
+      <BackButton onClick={() => onDone()} />
     </form>
   )
 }

@@ -357,7 +357,7 @@ const ACTIONS: Record<string, string> = {
   signup: 'Criou a conta da empresa', login: 'Entrou no app', store_create: 'Cadastrou loja', store_update: 'Editou loja',
   store_archive: 'Arquivou loja', user_create: 'Cadastrou usuário', user_update: 'Alterou usuário', user_password_reset: 'Redefiniu senha de usuário',
   company_update: 'Alterou configurações', product_create: 'Cadastrou produto', product_update: 'Editou produto', product_archive: 'Arquivou produto',
-  lot_create: 'Cadastrou lote', lot_withdraw: 'Retirou lote', lot_archive: 'Arquivou lote', lot_promotion: 'Colocou lote em promoção', lot_promotion_end: 'Tirou lote da promoção', receipt_create: 'Registrou entrada de mercadoria',
+  lot_create: 'Cadastrou lote', lot_withdraw: 'Retirou lote', lot_archive: 'Arquivou lote', lot_promotion: 'Colocou lote em promoção', password_reset_request: 'Pediu link de nova senha', password_reset: 'Criou nova senha pelo e-mail', lot_promotion_end: 'Tirou lote da promoção', receipt_create: 'Registrou entrada de mercadoria',
   password_change: 'Alterou a própria senha', profile_update: 'Editou o perfil',
 }
 
